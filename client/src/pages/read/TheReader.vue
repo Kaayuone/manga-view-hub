@@ -1,0 +1,5 @@
+<template>
+  <div>Читалка</div>
+</template>
+
+<script setup lang="ts"></script>
