@@ -1,4 +1,3 @@
-import App from '@/App.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
@@ -6,8 +5,20 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: App,
+      name: 'root-default',
+      component: async () => (await import('@/features/layouts')).LayoutDefault,
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: () => import('@/pages/home'),
+        },
+        {
+          path: '/library',
+          name: 'library',
+          component: () => import('@/pages/library'),
+        },
+      ],
     },
   ],
 });
