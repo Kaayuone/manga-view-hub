@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, type RouteLocation } from 'vue-router';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,6 +17,13 @@ const router = createRouter({
           path: '/library',
           name: 'library',
           component: () => import('@/pages/library'),
+        },
+        {
+          // TODO: Убрать из дефолтного лейаута
+          path: '/manga/:id',
+          name: 'manga',
+          component: () => import('@/pages/manga'),
+          props: (route: RouteLocation) => ({ id: parseInt(route.params.id as string) }),
         },
       ],
     },
