@@ -1,2 +1,2 @@
-import SearchManga from './SearchManga.vue';
-export { SearchManga };
+import SearchSourceList from './SearchSourceList.vue';
+export { SearchSourceList };
