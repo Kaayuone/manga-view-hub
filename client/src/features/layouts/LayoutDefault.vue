@@ -13,6 +13,10 @@ const TABS: NavigationTab[] = [
     text: 'Библиотека',
     routeName: 'library',
   },
+  {
+    text: 'Поиск',
+    routeName: 'search-list',
+  },
 ];
 
 const contentHeight = ref('100vh');
