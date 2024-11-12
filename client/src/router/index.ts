@@ -24,6 +24,12 @@ const router = createRouter({
           component: async () => (await import('@/pages/search')).SearchSourceList,
         },
         {
+          path: '/source/:name',
+          name: 'content-source',
+          component: () => import('@/pages/content-source'),
+          props: true,
+        },
+        {
           // TODO: Убрать из дефолтного лейаута
           path: '/manga/:id',
           name: 'manga',
