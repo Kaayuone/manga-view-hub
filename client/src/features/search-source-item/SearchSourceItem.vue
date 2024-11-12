@@ -5,7 +5,7 @@ import { Globe, Search } from 'lucide-vue-next';
 import type { SearchSource } from './types';
 
 const props = defineProps<{
-  item: SearchSource;
+  item?: SearchSource;
 }>();
 
 const emit = defineEmits<{
@@ -13,19 +13,19 @@ const emit = defineEmits<{
 }>();
 
 function open() {
-  emit('open', props.item.name);
+  emit('open', props.item!.name);
 }
 </script>
 
 <template>
-  <div class="flex items-center gap-2">
+  <div v-if="props.item" class="flex items-center gap-2">
     <Avatar style="background-color: white">
       <AvatarImage :src="props.item.iconPath" alt="Иконка источника" />
       <AvatarFallback><Globe /></AvatarFallback>
     </Avatar>
 
     <div class="mr-auto">
-      <h2 class="text-base">{{ props.item.name }}</h2>
+      <h2 class="text-base">{{ props.item.text }}</h2>
       <p class="text-2xs">{{ props.item.description }}</p>
     </div>
 
