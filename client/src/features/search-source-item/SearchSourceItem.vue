@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { Globe, Search } from 'lucide-vue-next';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/avatar';
 import { ShadcnButton } from '@/ui/button';
-import { Globe, Search } from 'lucide-vue-next';
-import type { SearchSource } from './types';
+
+import type { Source } from '@project-common/types/source';
+
 
 const props = defineProps<{
-  item?: SearchSource;
+  item?: Source;
 }>();
 
 const emit = defineEmits<{
@@ -19,8 +21,8 @@ function open() {
 
 <template>
   <div v-if="props.item" class="flex items-center gap-2">
-    <Avatar style="background-color: white">
-      <AvatarImage :src="props.item.iconPath" alt="Иконка источника" />
+    <Avatar >
+      <AvatarImage :src="`src/assets/images/${props.item.iconPath}`" class="bg-white" alt="Иконка источника" />
       <AvatarFallback><Globe /></AvatarFallback>
     </Avatar>
 
