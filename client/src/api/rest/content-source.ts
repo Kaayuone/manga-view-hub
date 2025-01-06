@@ -1,9 +1,14 @@
 import type { AxiosPromise } from 'axios';
 import request from '../config';
 
-import type { TitleListItem } from '@/features/title-card/types';
-import type { Source } from '@project-common/types/source';
-import type { ParamName, ParamSearch } from '../types/request.types';
+import type { Source, StoryChapter, StoryInfo, StoryListItem } from '@project-common/types/source';
+import type {
+  ParamName,
+  ParamsChapterList,
+  ParamSearch,
+  ParamsGetTitle,
+} from '../types/request.types';
+import type { PaginationResponse } from '@project-common/types/common';
 
 export function getSourceList(params: ParamName): AxiosPromise<Source[]> {
   return request({
@@ -14,12 +19,35 @@ export function getSourceList(params: ParamName): AxiosPromise<Source[]> {
 }
 
 // TODO: change params type
-export function getContentSourceManga(
+export function getContentSourceStories(
   name: string,
   params: ParamSearch,
-): AxiosPromise<TitleListItem[]> {
+): AxiosPromise<StoryListItem[]> {
   return request({
     url: `/search/source/${name}`,
+    method: 'GET',
+    params,
+  });
+}
+
+export function getStoryByIdInContentSource(
+  id: number,
+  sourceName: string,
+  params?: ParamsGetTitle,
+): AxiosPromise<StoryInfo> {
+  return request({
+    url: `/search/title/${sourceName}/${id}`,
+    method: 'GET',
+    params,
+  });
+}
+
+export function getStoryChaptersInContentSource(
+  sourceName: string,
+  params: ParamsChapterList,
+): AxiosPromise<PaginationResponse<StoryChapter>> {
+  return request({
+    url: `/search/${sourceName}/chapters`,
     method: 'GET',
     params,
   });

@@ -2,18 +2,26 @@
 import { AspectRatio } from '@/ui/aspect-ratio';
 import { Card, CardHeader, CardTitle } from '@/ui/card';
 
-import type { TitleListItem } from './types';
+import type { StoryListItem } from '@project-common/types/source';
 
 const props = defineProps<{
-  item: TitleListItem;
+  item: StoryListItem;
 }>();
+
+const emit = defineEmits<{
+  open: [item: StoryListItem];
+}>();
+
+function openTitlePage() {
+  emit('open', props.item);
+}
 </script>
 
 <template>
   <!-- TODO: добавить бэдж с количеством непрочитанных глав -->
-  <div class="w-1/3 p-1 md:w-1/4 lg:w-1/5">
+  <div class="w-1/3 p-1 md:w-1/4 lg:w-1/5" @click="openTitlePage">
     <AspectRatio :ratio="2 / 3">
-      <Card class="relative flex h-full flex-col overflow-hidden">
+      <Card class="relative flex h-full cursor-pointer flex-col overflow-hidden">
         <img
           :src="`${props.item.sourceMediaLink}${props.item.cover}`"
           :alt="`Обложка произведения ${props.item.title}`"

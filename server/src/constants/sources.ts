@@ -14,5 +14,13 @@ export const SEARCH_LINKS_SOURCE_API_MAP = new Map<SourceName, string>([
 ]);
 
 export enum MediaLinks {
-  REMANGA = 'https://remanga.org/',
+  REMANGA = 'https://remanga.org',
 }
+
+export const SEARCH_TITLE_LINK = new Map<SourceName, string>([
+  ['remanga', 'https://api.remanga.org/api/titles/'],
+]);
+
+export const SEARCH_CHAPTERS_LINK = new Map<SourceName, string>([
+  ['remanga', 'https://api.remanga.org/api/titles/chapters'],
+]);
