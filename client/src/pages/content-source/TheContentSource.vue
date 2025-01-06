@@ -6,26 +6,29 @@ import { ShadcnInput } from '@/ui/input';
 import { ShadcnButton } from '@/ui/button';
 
 import { contentSource } from '@/api';
+import { useRouter } from 'vue-router';
 import { computed, ref, watch } from 'vue';
 import { debouncedRef } from '@vueuse/core';
 
-import type { TitleListItem } from '@/features/title-card/types';
+import type { StoryListItem } from '@project-common/types/source';
 
 const props = defineProps<{
   name: string;
 }>();
 
-const titleList = ref<TitleListItem[]>([]);
+const titleList = ref<StoryListItem[]>([]);
 const query = ref('');
 const debounceSearchQuery = debouncedRef(query, 500);
 
 const hasItems = computed(() => titleList.value.length > 0);
 
+const router = useRouter();
+
 watch(debounceSearchQuery, getTitleList);
 
 async function getTitleList() {
   try {
-    const { data } = await contentSource.getContentSourceManga(props.name, {
+    const { data } = await contentSource.getContentSourceStories(props.name, {
       search: debounceSearchQuery.value,
     });
 
@@ -33,6 +36,13 @@ async function getTitleList() {
   } catch (error) {
     console.error(error);
   }
+}
+
+function openTitlePage(item: StoryListItem) {
+  router.push({
+    name: 'title-page',
+    params: { id: item.id, sourceName: props.name, url: item.urlName },
+  });
 }
 </script>
 
@@ -56,7 +66,12 @@ async function getTitleList() {
 
     <div class="h-full">
       <div class="flex flex-wrap items-start justify-start">
-        <TitleCard v-for="(title, index) in titleList" :key="`manga-${index}`" :item="title" />
+        <TitleCard
+          v-for="(title, index) in titleList"
+          :key="`manga-${index}`"
+          :item="title"
+          @open="openTitlePage"
+        />
       </div>
     </div>
   </div>

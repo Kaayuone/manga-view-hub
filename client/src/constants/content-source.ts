@@ -1,10 +1,12 @@
 import type { SearchSource } from '@/features/search-source-item/types';
 import remangaIcon from '@/assets/images/remanga.png';
+import type { SourceName } from '@project-common/types/source';
 
 export enum ContentSourceNames {
   REMANGA = 'REMANGA',
 }
 
+// TODO: replace all source info into server
 export const sourceItemsMap = new Map<ContentSourceNames, SearchSource>([
   [
     ContentSourceNames.REMANGA,
@@ -17,3 +19,5 @@ export const sourceItemsMap = new Map<ContentSourceNames, SearchSource>([
     },
   ],
 ]);
+
+export const SourcesTitleUseUrl: SourceName[] = ['remanga'];

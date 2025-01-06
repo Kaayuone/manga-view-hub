@@ -45,7 +45,7 @@ function openSource(name: string) {
     <ShadcnInput v-model="query" placeholder="Поиск" />
   </div>
 
-  <AtomSpinner v-if="!loading" v-bind="SPINNER.ATOM_SPINNER_CONFIG" />
+  <AtomSpinner v-if="loading" v-bind="SPINNER.ATOM_SPINNER_FIXED_CONFIG" />
 
   <div v-else class="py-2">
     <SearchSourceItem
