@@ -12,3 +12,10 @@ export type Pagination = PaginationInfo & {
 export type PaginationResponse<T> = Pagination & {
   content: T[];
 };
+
+export type ChapterFrame = {
+  id: number;
+  url: string;
+  height: number;
+  width: number;
+};
