@@ -25,7 +25,7 @@ import { useRouter } from 'vue-router';
 import { useIntersectionObserver } from '@vueuse/core';
 import { usePagination } from '@/lib/pagination';
 
-import { contentSource } from '@/api';
+import { contentSourceApi } from '@/api';
 
 import { computed, onMounted, ref } from 'vue';
 import type { SourceName, StoryChapter, StoryInfo } from '@project-common/types/source';
@@ -61,10 +61,14 @@ onMounted(async () => {
 
 async function getTitle() {
   try {
-    const { data } = await contentSource.getStoryByIdInContentSource(props.id, props.sourceName, {
-      titleUrl: props.url,
-      useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
-    });
+    const { data } = await contentSourceApi.getStoryByIdInContentSource(
+      props.id,
+      props.sourceName,
+      {
+        titleUrl: props.url,
+        useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
+      },
+    );
     storyInfo.value = data;
   } catch (error) {
     console.error(error);
@@ -76,7 +80,7 @@ async function getChapterList() {
 
   loadingChapters.value = true;
   try {
-    const { data } = await contentSource.getStoryChaptersInContentSource(props.sourceName, {
+    const { data } = await contentSourceApi.getStoryChaptersInContentSource(props.sourceName, {
       page: pagination.page.value,
       size: pagination.size.value,
       chapterListId: storyInfo.value?.chapterListId,
@@ -107,6 +111,7 @@ function read(chapter: StoryChapter) {
       id: chapter.id,
       sourceName: props.sourceName,
       url: props.url,
+      storyId: props.id,
     },
   });
 }

@@ -43,11 +43,12 @@ const router = createRouter({
       }),
     },
     {
-      path: '/read/:sourceName/:id/:url',
+      path: '/read/:sourceName/:storyId/:url/:id',
       name: 'read-manga',
       component: () => import('@/pages/read'),
       props: (route: RouteLocation) => ({
         id: parseInt(route.params.id as string),
+        storyId: parseInt(route.params.storyId as string),
         sourceName: route.params.sourceName,
         url: route.params.url,
       }),

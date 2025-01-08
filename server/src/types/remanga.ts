@@ -182,3 +182,48 @@ export interface RemangaChapter {
   upload_date: string;
   viewed: unknown;
 }
+
+export interface RemangaChapterSimple {
+  id: number;
+  is_bought: boolean;
+  index: number;
+  tome: number;
+  chapter: string;
+  name: string;
+  is_paid: boolean;
+}
+
+export interface RemangaPage {
+  id: number;
+  link: string;
+  height: number;
+  width: number;
+  count_comments: number;
+}
+
+export interface RemangaChapterInfo {
+  id: number;
+  tome: number;
+  chapter: string;
+  name: string;
+  score: number;
+  upload_date: string;
+  is_paid: boolean;
+  title_id: number;
+  volume_id: number | null;
+  branch_id: number;
+  price: string;
+  pub_date: string;
+  index: number;
+  delay_pub_date: string;
+  is_published: boolean;
+  publishers: unknown[];
+  rated: boolean;
+  is_bought: boolean;
+  pages: RemangaPage[][];
+}
+export interface RemangaChapterInfoResponse {
+  msg: string;
+  content: RemangaChapterInfo;
+  props: unknown;
+}

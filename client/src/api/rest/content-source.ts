@@ -52,3 +52,13 @@ export function getStoryChaptersInContentSource(
     params,
   });
 }
+
+export function getAllStoryChapters(
+  sourceName: string,
+  chapterListId: number,
+): AxiosPromise<StoryChapter[]> {
+  return request({
+    url: `/search/${sourceName}/${chapterListId}/chapters`,
+    method: 'GET',
+  });
+}

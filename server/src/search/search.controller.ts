@@ -11,12 +11,17 @@ import {
   Query,
   NotFoundException,
   BadRequestException,
+  Res,
+  Header,
+  StreamableFile,
 } from '@nestjs/common';
 import { SearchService } from './search.service';
 import { CreateSearchDto } from './dto/create-search.dto';
 import { UpdateSearchDto } from './dto/update-search.dto';
 import type {
   RemangaChapter,
+  RemangaChapterInfoResponse,
+  RemangaChapterSimple,
   RemangaResponse,
   RemangaTitleInfoResponse,
 } from '@/types/remanga';
@@ -30,7 +35,12 @@ import type {
 } from '@project-common/types/source';
 import { SOURCES } from '@/constants';
 import { wrapInPagination } from '@/utils/pagination';
-import { PaginationResponse } from '@project-common/types/common';
+import { ChapterFrame, PaginationResponse } from '@project-common/types/common';
+import axios from 'axios';
+import { createReadStream } from 'fs';
+import { Response } from 'express';
+import { getImageContentType } from '@/utils/common';
+import { ChapterResponse } from '@/types/common';
 
 @Controller('search')
 export class SearchController {
@@ -50,12 +60,13 @@ export class SearchController {
     @Param('name') name: SourceName,
     @Query('search') search: string,
   ): Promise<StoryListItem[] | NotFoundException> {
+    // TODO: try catch
     const sourceResponseData = await lastValueFrom(
       this.httpService
         .get(`${SOURCES.SEARCH_LINKS_SOURCE_API_MAP.get(name)}${search}`)
         .pipe(map(response => response.data)),
     );
-    console.log('sourceResponseData :>> ', sourceResponseData);
+    // console.log('sourceResponseData :>> ', sourceResponseData);
     let responseData: StoryListItem[] = [];
     switch (name) {
       case 'remanga':
@@ -140,7 +151,7 @@ export class SearchController {
     @Query('chapterListId') chapterListId: number,
     @Query('page') page: number,
     @Query('size') size: number,
-  ): Promise<PaginationResponse<StoryChapter>> {
+  ): Promise<PaginationResponse<StoryChapter> | NotFoundException> {
     const searchLink = SOURCES.SEARCH_CHAPTERS_LINK.get(sourceName);
     if (!searchLink) {
       throw new NotFoundException('There is no such source in the app');
@@ -159,7 +170,7 @@ export class SearchController {
         })
         .pipe(map(response => response.data)),
     );
-    console.log('chaptersList :>> ', chaptersList);
+    // console.log('chaptersList :>> ', chaptersList);
     const items = chaptersList.content.map<StoryChapter>(item => ({
       id: item.id,
       number: parseFloat(item.chapter),
@@ -170,10 +181,10 @@ export class SearchController {
       })),
       tome: item.tome,
     }));
-    console.log(
-      'chaptersList.content.at(-1) :>> ',
-      chaptersList.content.at(-1),
-    );
+    // console.log(
+    //   'chaptersList.content.at(-1) :>> ',
+    //   chaptersList.content.at(-1),
+    // );
 
     return wrapInPagination(
       items,
@@ -185,8 +196,91 @@ export class SearchController {
   }
   // https://api.remanga.org/api/titles/chapters/?branch_id=42597&ordering=-index&user_data=1&count=40&page=3
 
+  @Get(':sourceName/:chapterListId/chapters')
+  async getAllStoryChapters(
+    @Param('sourceName') sourceName: SourceName,
+    @Param('chapterListId') chapterListId: string,
+  ) {
+    const searchLink = SOURCES.SEARCH_CHAPTERS_LINK.get(sourceName);
+    if (!searchLink) {
+      throw new NotFoundException('There is no such source in the app');
+    }
+
+    const chaptersList: {
+      content: RemangaChapterSimple[];
+    } = await lastValueFrom(
+      this.httpService
+        .get(searchLink, {
+          params: {
+            branch_id: chapterListId,
+            user_data: 0,
+            ordering: 'index',
+          },
+        })
+        .pipe(map(response => response.data)),
+    );
+    console.log('chaptersList :>> ', chaptersList);
+    const items = chaptersList.content.map<StoryChapter>(item => ({
+      id: item.id,
+      number: parseFloat(item.chapter),
+      publishDate: '',
+      publishers: [],
+      tome: item.tome,
+    }));
+    return items;
+  }
+
+  @Get(':sourceName/chapter/:id')
+  async getChapterFrames(
+    @Param('sourceName') sourceName: SourceName,
+    @Param('id') id: string,
+  ): Promise<ChapterResponse | NotFoundException> {
+    const searchLink = SOURCES.SEARCH_CHAPTERS_LINK.get(sourceName);
+    if (!searchLink) {
+      throw new NotFoundException('There is no such source in the app');
+    }
+
+    // FIXME: type
+    const chapterInfo: RemangaChapterInfoResponse = await lastValueFrom(
+      this.httpService
+        .get(`${searchLink}/${id}`)
+        .pipe(map(response => response.data)),
+    );
+    console.log('chapterInfo :>> ', chapterInfo);
+    return {
+      tome: chapterInfo.content.tome,
+      chapter: chapterInfo.content.chapter,
+      pages: chapterInfo.content.pages.map(([{ id, link, height, width }]) => ({
+        id,
+        url: link,
+        height,
+        width,
+      })),
+    };
+  }
   // https://api.remanga.org/api/titles/chapters/881187/
   // get chapter by id
+
+  @Get(':sourceName/chapter/image/:imageUrl')
+  async getImageThroughProxy(
+    @Param('sourceName') sourceName: SourceName,
+    @Param('imageUrl') imageUrl: string,
+    @Res() res: Response,
+  ) {
+    const decodedUrl = decodeURIComponent(imageUrl);
+    const chapterFrame = await lastValueFrom(
+      this.httpService
+        .get(decodedUrl, {
+          headers: {
+            Referer: 'https://remanga.org/',
+          },
+          responseType: 'arraybuffer',
+        })
+        .pipe(map(response => response.data)),
+    );
+
+    res.send(chapterFrame);
+  }
 
   // https://api.remanga.org/api/titles/chapters/?branch_id=42597&&user_data=0
   // get all chapters
