@@ -117,7 +117,7 @@ function read(chapter: StoryChapter) {
 }
 
 function backToList() {
-  router.back();
+  router.push({ name: 'content-source', params: { name: props.sourceName } });
 }
 </script>
 

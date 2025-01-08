@@ -21,7 +21,7 @@ const props = defineProps<{
   url: string;
 }>();
 
-const menu = ref(false);
+const menu = ref(true);
 const framesLoading = ref(false);
 const frames = ref<ChapterFrame[]>([]);
 const storyInfo = ref<StoryInfo>();
