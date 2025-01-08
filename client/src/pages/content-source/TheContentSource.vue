@@ -5,7 +5,7 @@ import TitleCard from '@/features/title-card';
 import { ShadcnInput } from '@/ui/input';
 import { ShadcnButton } from '@/ui/button';
 
-import { contentSource } from '@/api';
+import { contentSourceApi } from '@/api';
 import { useRouter } from 'vue-router';
 import { computed, ref, watch } from 'vue';
 import { debouncedRef } from '@vueuse/core';
@@ -28,7 +28,7 @@ watch(debounceSearchQuery, getTitleList);
 
 async function getTitleList() {
   try {
-    const { data } = await contentSource.getContentSourceStories(props.name, {
+    const { data } = await contentSourceApi.getContentSourceStories(props.name, {
       search: debounceSearchQuery.value,
     });
 

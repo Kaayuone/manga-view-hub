@@ -2,7 +2,7 @@
 import SearchSourceItem from '@/features/search-source-item';
 import { ShadcnInput } from '@/ui/input';
 
-import { contentSource } from '@/api';
+import { contentSourceApi } from '@/api';
 
 import { useRouter } from 'vue-router';
 import { debouncedRef } from '@vueuse/core';
@@ -23,7 +23,7 @@ onMounted(getSourceList);
 async function getSourceList() {
   loading.value = true;
   try {
-    const { data } = await contentSource.getSourceList(
+    const { data } = await contentSourceApi.getSourceList(
       debounceSearchQuery.value ? { name: debounceSearchQuery.value } : {},
     );
     sources.value = data;
