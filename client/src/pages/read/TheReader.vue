@@ -2,6 +2,8 @@
 import { ShadcnButton } from '@/ui/button';
 import { ArrowLeft, Menu, Settings } from 'lucide-vue-next';
 
+import { useUserProgressStore } from '@/stores';
+
 import { contentSourceApi, storyApi } from '@/api';
 
 import { useRouter } from 'vue-router';
@@ -28,14 +30,25 @@ const storyInfo = ref<StoryInfo>();
 const chapterInfo = ref<ChapterInfo>();
 const chapters = ref<StoryChapter[]>([]);
 
-const showPreviousChapterButton = computed(
-  () => chapters.value.length > 0 && chapters.value.at(0)?.id !== props.id,
-);
-const showNextChapterButton = computed(
-  () => chapters.value.length > 0 && chapters.value.at(-1)?.id !== props.id,
-);
+const showPreviousChapterButton = computed(() => {
+  const currentChapterIndex = chapters.value.findIndex(chapter => chapter.id === props.id);
+  return (
+    chapters.value.length > 0 &&
+    chapters.value.at(0)?.id !== props.id &&
+    !chapters.value.at(currentChapterIndex - 1)?.isPaid
+  );
+});
+const showNextChapterButton = computed(() => {
+  const currentChapterIndex = chapters.value.findIndex(chapter => chapter.id === props.id);
+  return (
+    chapters.value.length > 0 &&
+    chapters.value.at(-1)?.id !== props.id &&
+    !chapters.value.at(currentChapterIndex + 1)?.isPaid
+  );
+});
 
 const router = useRouter();
+const { setProgress } = useUserProgressStore();
 
 onMounted(() => {
   getFrames();
@@ -56,7 +69,7 @@ async function getFrames() {
     };
     data.pages.forEach((frame, index) => {
       frames.value.push({ ...frame, url: '' });
-      // TODO: Optimize
+      // TODO: Optimize using intersection observer
       getImage(frame, index);
     });
   } catch (error) {
@@ -135,6 +148,7 @@ function openNextChapter() {
       url: props.url,
     },
   });
+  setProgress(props.sourceName, props.url, chapters.value.at(currentChapterIndex + 1)!.id);
 }
 
 function toggleMenu() {

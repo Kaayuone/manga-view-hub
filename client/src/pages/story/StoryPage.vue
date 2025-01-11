@@ -30,6 +30,7 @@ import { contentSourceApi } from '@/api';
 import { computed, onMounted, ref } from 'vue';
 import type { SourceName, StoryChapter, StoryInfo } from '@project-common/types/source';
 import { CONTENT_SOURCE, SPINNER } from '@/constants';
+import { useUserProgressStore } from '@/stores';
 
 const props = defineProps<{
   id: number;
@@ -49,8 +50,13 @@ const storyImage = computed(() =>
 const hasTranslators = computed(
   () => storyInfo?.value?.translators && storyInfo?.value?.translators.length > 0,
 );
+const lastChapterRead = computed(() => {
+  const sourceProgress = userProgress[props.sourceName];
+  return sourceProgress ? sourceProgress[props.url] : null;
+});
 
 const router = useRouter();
+const { userProgress, setProgress } = useUserProgressStore();
 const { pagination, paginationInfo, next, setPagination, setPaginationInfo } = usePagination();
 
 onMounted(async () => {
@@ -105,6 +111,13 @@ function onIntersectionObserver([entry]: IntersectionObserverEntry[]) {
 }
 
 function read(chapter: StoryChapter) {
+  const chapterToReadIndex = chapters.value.findIndex(_chapter => _chapter.id === chapter.id);
+  const lastChapterReadIndex = chapters.value.findIndex(
+    _chapter => _chapter.id === lastChapterRead.value,
+  );
+  if (chapterToReadIndex < lastChapterReadIndex) {
+    setProgress(props.sourceName, props.url, chapter.id);
+  }
   router.push({
     name: 'read-manga',
     params: {
@@ -114,6 +127,70 @@ function read(chapter: StoryChapter) {
       storyId: props.id,
     },
   });
+}
+
+async function readLast() {
+  const sourceProgress = userProgress[props.sourceName];
+  const lastChapter = sourceProgress ? sourceProgress[props.url] : 0;
+
+  // TODO: rework chapter list with this request
+  let allChapters: StoryChapter[] = [];
+  try {
+    const { data } = await contentSourceApi.getAllStoryChapters(
+      props.sourceName,
+      storyInfo.value!.chapterListId,
+    );
+    allChapters = data;
+  } catch (error) {
+    console.error(error);
+  }
+
+  if (!lastChapter) {
+    const firstChapter = allChapters.at(0);
+    if (!firstChapter) {
+      alert('Не получилось загрузить главу');
+      return;
+    }
+    if (firstChapter.isPaid) {
+      // TODO: replace alert with app notifications
+      alert('Первая глава платная, не могу открыть');
+      return;
+    }
+
+    router.push({
+      name: 'read-manga',
+      params: {
+        id: firstChapter?.id,
+        sourceName: props.sourceName,
+        url: props.url,
+        storyId: props.id,
+      },
+    });
+    setProgress(props.sourceName, props.url, firstChapter.id);
+  } else {
+    const currentChapterIndex = allChapters.findIndex(chapter => chapter.id === lastChapter);
+    const nextChapter = allChapters.at(currentChapterIndex + 1);
+    if (!nextChapter) {
+      alert('Не получилось загрузить главу');
+      return;
+    }
+    if (nextChapter.isPaid) {
+      // TODO: replace alert with app notifications
+      alert('Следующая глава платная, не могу открыть');
+      return;
+    }
+
+    router.push({
+      name: 'read-manga',
+      params: {
+        id: nextChapter?.id,
+        sourceName: props.sourceName,
+        url: props.url,
+        storyId: props.id,
+      },
+    });
+    setProgress(props.sourceName, props.url, nextChapter.id);
+  }
 }
 
 function backToList() {
@@ -206,16 +283,16 @@ function backToList() {
       </div>
 
       <template v-for="(chapter, index) in chapters" :key="chapter.id">
-        <ChapterItem :chapter="chapter" @open="read" />
+        <Separator v-if="chapter.id === lastChapterRead" label="Прочитано" />
+        <Separator v-else-if="index !== 0" />
 
-        <Separator v-if="index === 7" label="Прочитано" />
-        <Separator v-else-if="index !== chapters.length - 1" />
+        <ChapterItem :chapter="chapter" @open="read" />
       </template>
 
       <AtomSpinner v-if="loadingChapters" v-bind="SPINNER.ATOM_SPINNER_CONFIG" />
       <div ref="endOfChapters"></div>
 
-      <ShadcnButton class="sticky bottom-3 ml-auto flex" size="sm" @click="read">
+      <ShadcnButton class="sticky bottom-3 ml-auto flex" size="sm" @click="readLast">
         <Play :size="16" class="mr-2" /> Читать
       </ShadcnButton>
     </div>
