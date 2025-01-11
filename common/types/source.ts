@@ -35,4 +35,5 @@ export type StoryChapter = {
   number: number;
   publishDate: string;
   publishers: ChapterPublisher[];
+  isPaid: boolean;
 };

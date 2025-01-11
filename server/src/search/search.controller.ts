@@ -180,6 +180,7 @@ export class SearchController {
         name: publisher.name,
       })),
       tome: item.tome,
+      isPaid: item.is_paid ?? false,
     }));
     // console.log(
     //   'chaptersList.content.at(-1) :>> ',
@@ -226,6 +227,7 @@ export class SearchController {
       publishDate: '',
       publishers: [],
       tome: item.tome,
+      isPaid: item.is_paid ?? false,
     }));
     return items;
   }
