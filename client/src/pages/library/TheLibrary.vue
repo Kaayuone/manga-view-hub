@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MangaCard from '@/features/manga-card';
+// import TitleCard from '@/features/title-card';
 </script>
 
 <template>
@@ -9,20 +9,7 @@ import MangaCard from '@/features/manga-card';
 
     <div class="h-full">
       <div class="flex flex-wrap items-start justify-start">
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
-        <MangaCard />
+        <!-- <TitleCard /> -->
       </div>
     </div>
   </div>
