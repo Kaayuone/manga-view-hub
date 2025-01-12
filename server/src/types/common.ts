@@ -1,4 +1,4 @@
-import type { ChapterFrame } from '@project-common/types/common';
+import type { ChapterFrame } from '@project-common/types/title';
 
 export type WorkType = 'Манга' | 'Новелла';
 

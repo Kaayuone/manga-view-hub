@@ -5,7 +5,7 @@ type RemangaObject<T = string> = {
   name: T;
 };
 
-type StoryImages = {
+type TitleImages = {
   low: string;
   mid: string;
   high: string;
@@ -21,7 +21,7 @@ type RemangaCreator = {
   type?: number; // number type of creator: издатель/художник и т.п.
 };
 
-export interface StoryRemanga {
+export interface TitleRemanga {
   id: number;
   main_name: string;
   secondary_name: string;
@@ -33,7 +33,7 @@ export interface StoryRemanga {
   total_views: number;
   is_licensed: boolean;
   is_legal: boolean;
-  cover: StoryImages;
+  cover: TitleImages;
   type: WorkType;
   status: {
     id: number;
@@ -46,16 +46,16 @@ export interface StoryRemanga {
   bookmark_type: unknown;
   rus_name: string;
   en_name: string;
-  img: StoryImages;
+  img: TitleImages;
 }
 
-type ChapterInStoryInfo = {
+type ChapterInTitleInfo = {
   id: number;
   tome: number;
   chapter: string;
 };
 
-type StoryPublisher = {
+type TitlePublisher = {
   id: number;
   img: string;
   name: string;
@@ -81,7 +81,7 @@ type RemangaBranch = {
   immune_date: string;
 };
 
-export interface RemangaStoryInfo {
+export interface RemangaTitleInfo {
   id: number;
   secondary_name: string;
   main_name: string;
@@ -90,7 +90,7 @@ export interface RemangaStoryInfo {
   description: string;
   issue_year: number;
   avg_rating: string;
-  cover: StoryImages;
+  cover: TitleImages;
   count_rating: number;
   age_limit: number;
   status: RemangaObject;
@@ -102,16 +102,16 @@ export interface RemangaStoryInfo {
   genres: RemangaObject[];
   categories: RemangaObject[];
   branches: RemangaBranch[];
-  first_chapter: ChapterInStoryInfo;
+  first_chapter: ChapterInTitleInfo;
   continue_reading: unknown;
   current_reading: unknown;
-  start_reading: ChapterInStoryInfo;
+  start_reading: ChapterInTitleInfo;
   is_licensed: boolean;
   is_legal: boolean;
   uploaded: number;
   can_post_comments: boolean;
   adaptation: unknown;
-  publishers: StoryPublisher[];
+  publishers: TitlePublisher[];
   is_yaoi: boolean;
   is_erotic: boolean;
   rus_name: string;
@@ -130,7 +130,7 @@ export interface RemangaStoryInfo {
   count_cards: number;
   count_characters: number;
   count_posts: number;
-  img: StoryImages;
+  img: TitleImages;
   bookmark_type: unknown;
   has_cards: boolean;
   has_characters: boolean;
@@ -139,7 +139,7 @@ export interface RemangaStoryInfo {
 
 export interface RemangaResponse {
   msg: string;
-  content: StoryRemanga[];
+  content: TitleRemanga[];
   props: {
     total_items: number;
     total_pages: number;
@@ -148,7 +148,7 @@ export interface RemangaResponse {
 }
 
 export interface RemangaTitleInfoResponse {
-  content: RemangaStoryInfo;
+  content: RemangaTitleInfo;
   msg: string;
   props: {
     age_limit: RemangaObject[];

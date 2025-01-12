@@ -1,2 +1,2 @@
-export * as contentSourceApi from './rest/content-source';
-export * as storyApi from './rest/story';
+export * as searchApi from './rest/search';
+export * as titleApi from './rest/title';

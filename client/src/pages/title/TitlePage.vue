@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import ChapterItem from '@/features/chapter-item';
 import {
   ArrowDownToLine,
   ArrowLeft,
@@ -10,6 +9,7 @@ import {
   Play,
   User,
 } from 'lucide-vue-next';
+import ChapterItem from '@/features/chapter-item';
 import { ShadcnButton } from '@/ui/button';
 import {
   DropdownMenu,
@@ -24,13 +24,14 @@ import { Separator } from '@/ui/separator';
 import { useRouter } from 'vue-router';
 import { useIntersectionObserver } from '@vueuse/core';
 import { usePagination } from '@/lib/pagination';
+import { useUserProgressStore } from '@/stores';
 
-import { contentSourceApi } from '@/api';
+import { titleApi } from '@/api';
 
 import { computed, onMounted, ref } from 'vue';
-import type { SourceName, StoryChapter, StoryInfo } from '@project-common/types/source';
+import type { SourceName } from '@project-common/types/source';
+import type { TitleChapter, TitleInfo } from '@project-common/types/title';
 import { CONTENT_SOURCE, SPINNER } from '@/constants';
-import { useUserProgressStore } from '@/stores';
 
 const props = defineProps<{
   id: number;
@@ -39,16 +40,16 @@ const props = defineProps<{
 }>();
 
 const loadingChapters = ref(false);
-const storyInfo = ref<StoryInfo>();
-const chapters = ref<StoryChapter[]>([]);
+const titleInfo = ref<TitleInfo>();
+const chapters = ref<TitleChapter[]>([]);
 
 const endOfChapters = ref<HTMLDivElement>();
 
-const storyImage = computed(() =>
-  storyInfo.value ? `${storyInfo.value.sourceMediaLink}${storyInfo.value.cover}` : '',
+const titleCover = computed(() =>
+  titleInfo.value ? `${titleInfo.value.sourceMediaLink}${titleInfo.value.cover}` : '',
 );
 const hasTranslators = computed(
-  () => storyInfo?.value?.translators && storyInfo?.value?.translators.length > 0,
+  () => titleInfo?.value?.translators && titleInfo?.value?.translators.length > 0,
 );
 const lastChapterRead = computed(() => {
   const sourceProgress = userProgress[props.sourceName];
@@ -67,29 +68,25 @@ onMounted(async () => {
 
 async function getTitle() {
   try {
-    const { data } = await contentSourceApi.getStoryByIdInContentSource(
-      props.id,
-      props.sourceName,
-      {
-        titleUrl: props.url,
-        useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
-      },
-    );
-    storyInfo.value = data;
+    const { data } = await titleApi.getTitleByIdInSource(props.id, props.sourceName, {
+      titleUrl: props.url,
+      useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
+    });
+    titleInfo.value = data;
   } catch (error) {
     console.error(error);
   }
 }
 
 async function getChapterList() {
-  if (!storyInfo.value) return;
+  if (!titleInfo.value) return;
 
   loadingChapters.value = true;
   try {
-    const { data } = await contentSourceApi.getStoryChaptersInContentSource(props.sourceName, {
+    const { data } = await titleApi.getTitleChaptersInSource(props.sourceName, {
       page: pagination.page.value,
       size: pagination.size.value,
-      chapterListId: storyInfo.value?.chapterListId,
+      chapterListId: titleInfo.value?.chapterListId,
     });
     chapters.value = [...chapters.value, ...data.content];
     setPagination(data.page, data.size);
@@ -110,7 +107,7 @@ function onIntersectionObserver([entry]: IntersectionObserverEntry[]) {
   }
 }
 
-function read(chapter: StoryChapter) {
+function read(chapter: TitleChapter) {
   const chapterToReadIndex = chapters.value.findIndex(_chapter => _chapter.id === chapter.id);
   const lastChapterReadIndex = chapters.value.findIndex(
     _chapter => _chapter.id === lastChapterRead.value,
@@ -124,7 +121,7 @@ function read(chapter: StoryChapter) {
       id: chapter.id,
       sourceName: props.sourceName,
       url: props.url,
-      storyId: props.id,
+      titleId: props.id,
     },
   });
 }
@@ -134,11 +131,11 @@ async function readLast() {
   const lastChapter = sourceProgress ? sourceProgress[props.url] : 0;
 
   // TODO: rework chapter list with this request
-  let allChapters: StoryChapter[] = [];
+  let allChapters: TitleChapter[] = [];
   try {
-    const { data } = await contentSourceApi.getAllStoryChapters(
+    const { data } = await titleApi.getAllTitleChapters(
       props.sourceName,
-      storyInfo.value!.chapterListId,
+      titleInfo.value!.chapterListId,
     );
     allChapters = data;
   } catch (error) {
@@ -163,7 +160,7 @@ async function readLast() {
         id: firstChapter?.id,
         sourceName: props.sourceName,
         url: props.url,
-        storyId: props.id,
+        titleId: props.id,
       },
     });
     setProgress(props.sourceName, props.url, firstChapter.id);
@@ -186,7 +183,7 @@ async function readLast() {
         id: nextChapter?.id,
         sourceName: props.sourceName,
         url: props.url,
-        storyId: props.id,
+        titleId: props.id,
       },
     });
     setProgress(props.sourceName, props.url, nextChapter.id);
@@ -246,40 +243,40 @@ function backToList() {
         <div class="min-w-[100px]">
           <AspectRatio :ratio="2 / 3">
             <img
-              :src="storyImage"
-              :alt="`Обложка произведения ${storyInfo?.title}`"
+              :src="titleCover"
+              :alt="`Обложка произведения ${titleInfo?.title}`"
               class="h-full object-cover"
             />
           </AspectRatio>
         </div>
 
         <div class="ml-3 flex flex-col">
-          <h1 class="mb-2 leading-tight">{{ storyInfo?.title }}</h1>
+          <h1 class="mb-2 leading-tight">{{ titleInfo?.title }}</h1>
 
           <div class="mb-2 flex items-center gap-x-1">
             <User class="h-4 w-4" />
-            <span class="text-2xs">{{ storyInfo?.authors.join(', ') }}</span>
+            <span class="text-2xs">{{ titleInfo?.authors.join(', ') }}</span>
           </div>
 
           <div v-if="hasTranslators" class="mb-2 flex items-center gap-x-1">
             <BookCheck class="h-4 w-4" />
-            <span class="text-2xs">{{ storyInfo?.translators?.join(', ') }}</span>
+            <span class="text-2xs">{{ titleInfo?.translators?.join(', ') }}</span>
           </div>
 
           <div class="flex items-center gap-x-1">
             <Clock class="h-4 w-4" />
-            <span class="text-2xs">{{ storyInfo?.status }}</span>
+            <span class="text-2xs">{{ titleInfo?.status }}</span>
           </div>
         </div>
       </div>
 
       <!-- TODO: Сворачивание описания и тегов -->
       <div class="mb-3 text-xs">
-        {{ storyInfo?.description }}
+        {{ titleInfo?.description }}
       </div>
 
       <div class="mb-3 flex flex-wrap gap-1.5">
-        <Badge v-for="tag in storyInfo?.tags" :key="tag" size="small">{{ tag }}</Badge>
+        <Badge v-for="tag in titleInfo?.tags" :key="tag" size="small">{{ tag }}</Badge>
       </div>
 
       <template v-for="(chapter, index) in chapters" :key="chapter.id">

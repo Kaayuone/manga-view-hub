@@ -5,18 +5,20 @@ import TitleCard from '@/features/title-card';
 import { ShadcnInput } from '@/ui/input';
 import { ShadcnButton } from '@/ui/button';
 
-import { contentSourceApi } from '@/api';
 import { useRouter } from 'vue-router';
+
+import { searchApi } from '@/api';
+
 import { computed, ref, watch } from 'vue';
 import { debouncedRef } from '@vueuse/core';
 
-import type { StoryListItem } from '@project-common/types/source';
+import type { SourceName, TitleListItem } from '@project-common/types/source';
 
 const props = defineProps<{
-  name: string;
+  name: SourceName;
 }>();
 
-const titleList = ref<StoryListItem[]>([]);
+const titleList = ref<TitleListItem[]>([]);
 const query = ref('');
 const debounceSearchQuery = debouncedRef(query, 500);
 
@@ -28,7 +30,7 @@ watch(debounceSearchQuery, getTitleList);
 
 async function getTitleList() {
   try {
-    const { data } = await contentSourceApi.getContentSourceStories(props.name, {
+    const { data } = await searchApi.getTitlesInSourceBySearch(props.name, {
       search: debounceSearchQuery.value,
     });
 
@@ -38,7 +40,7 @@ async function getTitleList() {
   }
 }
 
-function openTitlePage(item: StoryListItem) {
+function openTitlePage(item: TitleListItem) {
   router.push({
     name: 'title-page',
     params: { id: item.id, sourceName: props.name, url: item.urlName },

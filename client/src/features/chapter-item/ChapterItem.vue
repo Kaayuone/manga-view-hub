@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ArrowDownToLine, DollarSign } from 'lucide-vue-next';
 import { ShadcnButton } from '@/ui/button';
-import type { StoryChapter } from '@project-common/types/source';
+import type { TitleChapter } from '@project-common/types/title';
 
 const props = defineProps<{
-  chapter: StoryChapter;
+  chapter: TitleChapter;
 }>();
 
 const emit = defineEmits<{
-  open: [chapter: StoryChapter];
+  open: [chapter: TitleChapter];
 }>();
 
 function openChapter() {
