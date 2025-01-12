@@ -35,7 +35,7 @@ const router = createRouter({
     {
       path: '/title/:sourceName/:id/:url',
       name: 'title-page',
-      component: () => import('@/pages/story'),
+      component: () => import('@/pages/title'),
       props: (route: RouteLocation) => ({
         id: parseInt(route.params.id as string),
         sourceName: route.params.sourceName,
@@ -43,12 +43,12 @@ const router = createRouter({
       }),
     },
     {
-      path: '/read/:sourceName/:storyId/:url/:id',
+      path: '/read/:sourceName/:titleId/:url/:id',
       name: 'read-manga',
       component: () => import('@/pages/read'),
       props: (route: RouteLocation) => ({
         id: parseInt(route.params.id as string),
-        storyId: parseInt(route.params.storyId as string),
+        titleId: parseInt(route.params.titleId as string),
         sourceName: route.params.sourceName,
         url: route.params.url,
       }),

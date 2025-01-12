@@ -31,7 +31,7 @@ export function getContentSourceStories(
   });
 }
 
-export function getStoryByIdInContentSource(
+export function getTitleByIdInContentSource(
   id: number,
   sourceName: string,
   params?: ParamsGetTitle,
@@ -43,7 +43,7 @@ export function getStoryByIdInContentSource(
   });
 }
 
-export function getStoryChaptersInContentSource(
+export function getTitleChaptersInContentSource(
   sourceName: string,
   params: ParamsChapterList,
 ): AxiosPromise<PaginationResponse<TitleChapter>> {
@@ -54,7 +54,7 @@ export function getStoryChaptersInContentSource(
   });
 }
 
-export function getAllStoryChapters(
+export function getAllTitleChapters(
   sourceName: string,
   chapterListId: number,
 ): AxiosPromise<TitleChapter[]> {

@@ -71,11 +71,11 @@ export class SearchController {
     switch (name) {
       case 'remanga':
         const sourceResponseDataRemanga = sourceResponseData as RemangaResponse;
-        responseData = sourceResponseDataRemanga.content.map(remangaStory => ({
-          id: remangaStory.id,
-          urlName: remangaStory.dir,
-          cover: remangaStory.cover.high,
-          title: remangaStory.rus_name,
+        responseData = sourceResponseDataRemanga.content.map(remangaTitle => ({
+          id: remangaTitle.id,
+          urlName: remangaTitle.dir,
+          cover: remangaTitle.cover.high,
+          title: remangaTitle.rus_name,
           sourceMediaLink: SOURCES.MediaLinks.REMANGA,
         }));
         break;
@@ -146,7 +146,7 @@ export class SearchController {
   }
 
   @Get(':sourceName/chapters')
-  async getStoryChapters(
+  async getTitleChapters(
     @Param('sourceName') sourceName: SourceName,
     @Query('chapterListId') chapterListId: number,
     @Query('page') page: number,
@@ -198,7 +198,7 @@ export class SearchController {
   // https://api.remanga.org/api/titles/chapters/?branch_id=42597&ordering=-index&user_data=1&count=40&page=3
 
   @Get(':sourceName/:chapterListId/chapters')
-  async getAllStoryChapters(
+  async getAllTitleChapters(
     @Param('sourceName') sourceName: SourceName,
     @Param('chapterListId') chapterListId: string,
   ) {

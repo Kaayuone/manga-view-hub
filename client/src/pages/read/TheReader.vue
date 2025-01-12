@@ -15,7 +15,7 @@ import { CONTENT_SOURCE, SPINNER } from '@/constants';
 
 const props = defineProps<{
   id: number;
-  storyId: number;
+  titleId: number;
   sourceName: SourceName;
   url: string;
 }>();
@@ -23,7 +23,7 @@ const props = defineProps<{
 const menu = ref(true);
 const framesLoading = ref(false);
 const frames = ref<ChapterFrame[]>([]);
-const storyInfo = ref<TitleInfo>();
+const titleInfo = ref<TitleInfo>();
 const chapterInfo = ref<ChapterInfo>();
 const chapters = ref<TitleChapter[]>([]);
 
@@ -49,7 +49,7 @@ const { setProgress } = useUserProgressStore();
 
 onMounted(() => {
   getFrames();
-  getTitle().then(() => getAllChapters(storyInfo.value!.chapterListId));
+  getTitle().then(() => getAllChapters(titleInfo.value!.chapterListId));
 });
 
 onBeforeUnmount(() => {
@@ -87,11 +87,11 @@ async function getImage(frame: ChapterFrame, index: number) {
 
 async function getTitle() {
   try {
-    const { data } = await sourceApi.getStoryByIdInContentSource(props.storyId, props.sourceName, {
+    const { data } = await sourceApi.getTitleByIdInContentSource(props.titleId, props.sourceName, {
       titleUrl: props.url,
       useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
     });
-    storyInfo.value = data;
+    titleInfo.value = data;
   } catch (error) {
     console.error(error);
   }
@@ -99,18 +99,18 @@ async function getTitle() {
 
 async function getAllChapters(chapterListId: number) {
   try {
-    const { data } = await sourceApi.getAllStoryChapters(props.sourceName, chapterListId);
+    const { data } = await sourceApi.getAllTitleChapters(props.sourceName, chapterListId);
     chapters.value = data;
   } catch (error) {
     console.error(error);
   }
 }
 
-function backToStory() {
+function backToTitle() {
   router.replace({
     name: 'title-page',
     params: {
-      id: props.storyId,
+      id: props.titleId,
       sourceName: props.sourceName,
       url: props.url,
     },
@@ -123,7 +123,7 @@ function openPreviousChapter() {
     name: 'read-manga',
     params: {
       id: chapters.value.at(currentChapterIndex - 1)!.id,
-      storyId: props.storyId,
+      titleId: props.titleId,
       sourceName: props.sourceName,
       url: props.url,
     },
@@ -136,7 +136,7 @@ function openNextChapter() {
     name: 'read-manga',
     params: {
       id: chapters.value.at(currentChapterIndex + 1)!.id,
-      storyId: props.storyId,
+      titleId: props.titleId,
       sourceName: props.sourceName,
       url: props.url,
     },
@@ -155,16 +155,16 @@ function toggleMenu() {
       :class="{ '-translate-y-full': !menu }"
       class="fixed top-0 z-[1] flex w-full justify-between bg-background/90 px-2 py-2 transition-all"
     >
-      <ShadcnButton variant="ghost" size="icon" @click="backToStory">
+      <ShadcnButton variant="ghost" size="icon" @click="backToTitle">
         <ArrowLeft />
       </ShadcnButton>
 
       <div class="mr-auto px-2">
         <h1
-          :title="storyInfo?.title"
+          :title="titleInfo?.title"
           class="max-w-[calc(100vw-128px)] overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-none"
         >
-          {{ storyInfo?.title }}
+          {{ titleInfo?.title }}
         </h1>
 
         <span class="text-xs leading-3">
@@ -195,10 +195,10 @@ function toggleMenu() {
       </ShadcnButton>
 
       <h1
-        :title="storyInfo?.title"
+        :title="titleInfo?.title"
         class="overflow-hidden text-ellipsis whitespace-nowrap text-center text-sm leading-none"
       >
-        {{ storyInfo?.title }}
+        {{ titleInfo?.title }}
       </h1>
 
       <span class="block text-center text-xs leading-3"> Глава {{ chapterInfo?.chapter }} </span>
