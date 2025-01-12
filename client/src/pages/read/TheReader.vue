@@ -5,7 +5,7 @@ import { ArrowLeft, Menu, Settings } from 'lucide-vue-next';
 import { useUserProgressStore } from '@/stores';
 import { useRouter } from 'vue-router';
 
-import { sourceApi, titleApi } from '@/api';
+import { titleApi } from '@/api';
 
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import type { SourceName } from '@project-common/types/source';
@@ -87,7 +87,7 @@ async function getImage(frame: ChapterFrame, index: number) {
 
 async function getTitle() {
   try {
-    const { data } = await sourceApi.getTitleByIdInContentSource(props.titleId, props.sourceName, {
+    const { data } = await titleApi.getTitleByIdInSource(props.titleId, props.sourceName, {
       titleUrl: props.url,
       useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
     });
@@ -99,7 +99,7 @@ async function getTitle() {
 
 async function getAllChapters(chapterListId: number) {
   try {
-    const { data } = await sourceApi.getAllTitleChapters(props.sourceName, chapterListId);
+    const { data } = await titleApi.getAllTitleChapters(props.sourceName, chapterListId);
     chapters.value = data;
   } catch (error) {
     console.error(error);

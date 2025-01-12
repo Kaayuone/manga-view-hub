@@ -7,15 +7,15 @@ import { ShadcnButton } from '@/ui/button';
 
 import { useRouter } from 'vue-router';
 
-import { sourceApi } from '@/api';
+import { searchApi } from '@/api';
 
 import { computed, ref, watch } from 'vue';
 import { debouncedRef } from '@vueuse/core';
 
-import type { TitleListItem } from '@project-common/types/source';
+import type { SourceName, TitleListItem } from '@project-common/types/source';
 
 const props = defineProps<{
-  name: string;
+  name: SourceName;
 }>();
 
 const titleList = ref<TitleListItem[]>([]);
@@ -30,7 +30,7 @@ watch(debounceSearchQuery, getTitleList);
 
 async function getTitleList() {
   try {
-    const { data } = await sourceApi.getContentSourceStories(props.name, {
+    const { data } = await searchApi.getTitlesInSourceBySearch(props.name, {
       search: debounceSearchQuery.value,
     });
 

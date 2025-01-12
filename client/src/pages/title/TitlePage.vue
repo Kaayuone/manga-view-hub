@@ -26,7 +26,7 @@ import { useIntersectionObserver } from '@vueuse/core';
 import { usePagination } from '@/lib/pagination';
 import { useUserProgressStore } from '@/stores';
 
-import { sourceApi } from '@/api';
+import { titleApi } from '@/api';
 
 import { computed, onMounted, ref } from 'vue';
 import type { SourceName } from '@project-common/types/source';
@@ -68,7 +68,7 @@ onMounted(async () => {
 
 async function getTitle() {
   try {
-    const { data } = await sourceApi.getTitleByIdInContentSource(props.id, props.sourceName, {
+    const { data } = await titleApi.getTitleByIdInSource(props.id, props.sourceName, {
       titleUrl: props.url,
       useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
     });
@@ -83,7 +83,7 @@ async function getChapterList() {
 
   loadingChapters.value = true;
   try {
-    const { data } = await sourceApi.getTitleChaptersInContentSource(props.sourceName, {
+    const { data } = await titleApi.getTitleChaptersInSource(props.sourceName, {
       page: pagination.page.value,
       size: pagination.size.value,
       chapterListId: titleInfo.value?.chapterListId,
@@ -133,7 +133,7 @@ async function readLast() {
   // TODO: rework chapter list with this request
   let allChapters: TitleChapter[] = [];
   try {
-    const { data } = await sourceApi.getAllTitleChapters(
+    const { data } = await titleApi.getAllTitleChapters(
       props.sourceName,
       titleInfo.value!.chapterListId,
     );
