@@ -1,5 +1,3 @@
-import { HttpService } from '@nestjs/axios';
-import { lastValueFrom, map } from 'rxjs';
 import {
   Controller,
   Get,
@@ -12,12 +10,16 @@ import {
   NotFoundException,
   BadRequestException,
   Res,
-  Header,
-  StreamableFile,
 } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { SearchService } from './search.service';
 import { CreateSearchDto } from './dto/create-search.dto';
 import { UpdateSearchDto } from './dto/update-search.dto';
+
+import { lastValueFrom, map } from 'rxjs';
+import { wrapInPagination } from '@/utils/pagination';
+
+import type { Response } from 'express';
 import type {
   RemangaChapter,
   RemangaChapterInfoResponse,
@@ -25,22 +27,20 @@ import type {
   RemangaResponse,
   RemangaTitleInfoResponse,
 } from '@/types/remanga';
+import type { ChapterResponse } from '@/types/common';
 import type {
   ChapterPublisher,
+  TitleChapter,
+  TitleInfo,
+} from '@project-common/types/title';
+import type { PaginationResponse } from '@project-common/types/common';
+import type {
   Source,
   SourceName,
-  StoryChapter,
-  StoryInfo,
-  StoryListItem,
+  TitleListItem,
 } from '@project-common/types/source';
+
 import { SOURCES } from '@/constants';
-import { wrapInPagination } from '@/utils/pagination';
-import { ChapterFrame, PaginationResponse } from '@project-common/types/common';
-import axios from 'axios';
-import { createReadStream } from 'fs';
-import { Response } from 'express';
-import { getImageContentType } from '@/utils/common';
-import { ChapterResponse } from '@/types/common';
 
 @Controller('search')
 export class SearchController {
@@ -59,7 +59,7 @@ export class SearchController {
   async searchInSource(
     @Param('name') name: SourceName,
     @Query('search') search: string,
-  ): Promise<StoryListItem[] | NotFoundException> {
+  ): Promise<TitleListItem[] | NotFoundException> {
     // TODO: try catch
     const sourceResponseData = await lastValueFrom(
       this.httpService
@@ -67,7 +67,7 @@ export class SearchController {
         .pipe(map(response => response.data)),
     );
     // console.log('sourceResponseData :>> ', sourceResponseData);
-    let responseData: StoryListItem[] = [];
+    let responseData: TitleListItem[] = [];
     switch (name) {
       case 'remanga':
         const sourceResponseDataRemanga = sourceResponseData as RemangaResponse;
@@ -95,7 +95,7 @@ export class SearchController {
     @Param('id') id: string,
     @Query('titleUrl') titleUrl?: string,
     @Query('useUrlInsteadId') useUrlInsteadId?: boolean,
-  ): Promise<StoryInfo | BadRequestException | NotFoundException> {
+  ): Promise<TitleInfo | BadRequestException | NotFoundException> {
     if (useUrlInsteadId && !titleUrl) {
       throw new BadRequestException(
         'Using url instead of title, but there is no title provided',
@@ -111,7 +111,7 @@ export class SearchController {
     const sourceResponseData = await lastValueFrom(
       this.httpService.get(linkGetTitle).pipe(map(response => response.data)),
     );
-    let responseData: StoryInfo;
+    let responseData: TitleInfo;
     switch (sourceName) {
       case 'remanga':
         const sourceResponseDataRemanga =
@@ -151,7 +151,7 @@ export class SearchController {
     @Query('chapterListId') chapterListId: number,
     @Query('page') page: number,
     @Query('size') size: number,
-  ): Promise<PaginationResponse<StoryChapter> | NotFoundException> {
+  ): Promise<PaginationResponse<TitleChapter> | NotFoundException> {
     const searchLink = SOURCES.SEARCH_CHAPTERS_LINK.get(sourceName);
     if (!searchLink) {
       throw new NotFoundException('There is no such source in the app');
@@ -171,7 +171,7 @@ export class SearchController {
         .pipe(map(response => response.data)),
     );
     // console.log('chaptersList :>> ', chaptersList);
-    const items = chaptersList.content.map<StoryChapter>(item => ({
+    const items = chaptersList.content.map<TitleChapter>(item => ({
       id: item.id,
       number: parseFloat(item.chapter),
       publishDate: item.pub_date,
@@ -221,7 +221,7 @@ export class SearchController {
         .pipe(map(response => response.data)),
     );
     console.log('chaptersList :>> ', chaptersList);
-    const items = chaptersList.content.map<StoryChapter>(item => ({
+    const items = chaptersList.content.map<TitleChapter>(item => ({
       id: item.id,
       number: parseFloat(item.chapter),
       publishDate: '',

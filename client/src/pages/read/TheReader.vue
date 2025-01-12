@@ -3,17 +3,14 @@ import { ShadcnButton } from '@/ui/button';
 import { ArrowLeft, Menu, Settings } from 'lucide-vue-next';
 
 import { useUserProgressStore } from '@/stores';
-
-import { contentSourceApi, storyApi } from '@/api';
-
 import { useRouter } from 'vue-router';
 
+import { sourceApi, titleApi } from '@/api';
+
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-
-import type { SourceName, StoryChapter, StoryInfo } from '@project-common/types/source';
-import type { ChapterFrame } from '@project-common/types/common';
+import type { SourceName } from '@project-common/types/source';
+import type { ChapterFrame, TitleChapter, TitleInfo } from '@project-common/types/title';
 import type { ChapterInfo } from '@/types';
-
 import { CONTENT_SOURCE, SPINNER } from '@/constants';
 
 const props = defineProps<{
@@ -26,9 +23,9 @@ const props = defineProps<{
 const menu = ref(true);
 const framesLoading = ref(false);
 const frames = ref<ChapterFrame[]>([]);
-const storyInfo = ref<StoryInfo>();
+const storyInfo = ref<TitleInfo>();
 const chapterInfo = ref<ChapterInfo>();
-const chapters = ref<StoryChapter[]>([]);
+const chapters = ref<TitleChapter[]>([]);
 
 const showPreviousChapterButton = computed(() => {
   const currentChapterIndex = chapters.value.findIndex(chapter => chapter.id === props.id);
@@ -62,7 +59,7 @@ onBeforeUnmount(() => {
 async function getFrames() {
   framesLoading.value = true;
   try {
-    const { data } = await storyApi.getChapterInfo(props.sourceName, props.id);
+    const { data } = await titleApi.getChapterInfo(props.sourceName, props.id);
     chapterInfo.value = {
       tome: data.tome,
       chapter: data.chapter,
@@ -80,7 +77,7 @@ async function getFrames() {
 
 async function getImage(frame: ChapterFrame, index: number) {
   try {
-    const { data } = await storyApi.getFrameThroughProxy(props.sourceName, frame.url);
+    const { data } = await titleApi.getFrameThroughProxy(props.sourceName, frame.url);
     const _frame = frames.value.at(index)!;
     _frame.url = URL.createObjectURL(data);
   } catch (error) {
@@ -90,14 +87,10 @@ async function getImage(frame: ChapterFrame, index: number) {
 
 async function getTitle() {
   try {
-    const { data } = await contentSourceApi.getStoryByIdInContentSource(
-      props.storyId,
-      props.sourceName,
-      {
-        titleUrl: props.url,
-        useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
-      },
-    );
+    const { data } = await sourceApi.getStoryByIdInContentSource(props.storyId, props.sourceName, {
+      titleUrl: props.url,
+      useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
+    });
     storyInfo.value = data;
   } catch (error) {
     console.error(error);
@@ -106,7 +99,7 @@ async function getTitle() {
 
 async function getAllChapters(chapterListId: number) {
   try {
-    const { data } = await contentSourceApi.getAllStoryChapters(props.sourceName, chapterListId);
+    const { data } = await sourceApi.getAllStoryChapters(props.sourceName, chapterListId);
     chapters.value = data;
   } catch (error) {
     console.error(error);

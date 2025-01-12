@@ -25,10 +25,11 @@ import { useRouter } from 'vue-router';
 import { useIntersectionObserver } from '@vueuse/core';
 import { usePagination } from '@/lib/pagination';
 
-import { contentSourceApi } from '@/api';
+import { sourceApi } from '@/api';
 
 import { computed, onMounted, ref } from 'vue';
-import type { SourceName, StoryChapter, StoryInfo } from '@project-common/types/source';
+import type { SourceName } from '@project-common/types/source';
+import type { TitleChapter, TitleInfo } from '@project-common/types/title';
 import { CONTENT_SOURCE, SPINNER } from '@/constants';
 import { useUserProgressStore } from '@/stores';
 
@@ -39,8 +40,8 @@ const props = defineProps<{
 }>();
 
 const loadingChapters = ref(false);
-const storyInfo = ref<StoryInfo>();
-const chapters = ref<StoryChapter[]>([]);
+const storyInfo = ref<TitleInfo>();
+const chapters = ref<TitleChapter[]>([]);
 
 const endOfChapters = ref<HTMLDivElement>();
 
@@ -67,14 +68,10 @@ onMounted(async () => {
 
 async function getTitle() {
   try {
-    const { data } = await contentSourceApi.getStoryByIdInContentSource(
-      props.id,
-      props.sourceName,
-      {
-        titleUrl: props.url,
-        useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
-      },
-    );
+    const { data } = await sourceApi.getStoryByIdInContentSource(props.id, props.sourceName, {
+      titleUrl: props.url,
+      useUrlInsteadId: CONTENT_SOURCE.SourcesTitleUseUrl.includes(props.sourceName),
+    });
     storyInfo.value = data;
   } catch (error) {
     console.error(error);
@@ -86,7 +83,7 @@ async function getChapterList() {
 
   loadingChapters.value = true;
   try {
-    const { data } = await contentSourceApi.getStoryChaptersInContentSource(props.sourceName, {
+    const { data } = await sourceApi.getStoryChaptersInContentSource(props.sourceName, {
       page: pagination.page.value,
       size: pagination.size.value,
       chapterListId: storyInfo.value?.chapterListId,
@@ -110,7 +107,7 @@ function onIntersectionObserver([entry]: IntersectionObserverEntry[]) {
   }
 }
 
-function read(chapter: StoryChapter) {
+function read(chapter: TitleChapter) {
   const chapterToReadIndex = chapters.value.findIndex(_chapter => _chapter.id === chapter.id);
   const lastChapterReadIndex = chapters.value.findIndex(
     _chapter => _chapter.id === lastChapterRead.value,
@@ -134,9 +131,9 @@ async function readLast() {
   const lastChapter = sourceProgress ? sourceProgress[props.url] : 0;
 
   // TODO: rework chapter list with this request
-  let allChapters: StoryChapter[] = [];
+  let allChapters: TitleChapter[] = [];
   try {
-    const { data } = await contentSourceApi.getAllStoryChapters(
+    const { data } = await sourceApi.getAllStoryChapters(
       props.sourceName,
       storyInfo.value!.chapterListId,
     );

@@ -1,7 +1,7 @@
 import type { AxiosPromise } from 'axios';
 import request from '../config';
 
-import type { Source, StoryChapter, StoryInfo, StoryListItem } from '@project-common/types/source';
+import type { Source, TitleListItem } from '@project-common/types/source';
 import type {
   ParamName,
   ParamsChapterList,
@@ -9,6 +9,7 @@ import type {
   ParamsGetTitle,
 } from '../types/request.types';
 import type { PaginationResponse } from '@project-common/types/common';
+import type { TitleChapter, TitleInfo } from '@project-common/types/title';
 
 export function getSourceList(params: ParamName): AxiosPromise<Source[]> {
   return request({
@@ -22,7 +23,7 @@ export function getSourceList(params: ParamName): AxiosPromise<Source[]> {
 export function getContentSourceStories(
   name: string,
   params: ParamSearch,
-): AxiosPromise<StoryListItem[]> {
+): AxiosPromise<TitleListItem[]> {
   return request({
     url: `/search/source/${name}`,
     method: 'GET',
@@ -34,7 +35,7 @@ export function getStoryByIdInContentSource(
   id: number,
   sourceName: string,
   params?: ParamsGetTitle,
-): AxiosPromise<StoryInfo> {
+): AxiosPromise<TitleInfo> {
   return request({
     url: `/search/title/${sourceName}/${id}`,
     method: 'GET',
@@ -45,7 +46,7 @@ export function getStoryByIdInContentSource(
 export function getStoryChaptersInContentSource(
   sourceName: string,
   params: ParamsChapterList,
-): AxiosPromise<PaginationResponse<StoryChapter>> {
+): AxiosPromise<PaginationResponse<TitleChapter>> {
   return request({
     url: `/search/${sourceName}/chapters`,
     method: 'GET',
@@ -56,7 +57,7 @@ export function getStoryChaptersInContentSource(
 export function getAllStoryChapters(
   sourceName: string,
   chapterListId: number,
-): AxiosPromise<StoryChapter[]> {
+): AxiosPromise<TitleChapter[]> {
   return request({
     url: `/search/${sourceName}/${chapterListId}/chapters`,
     method: 'GET',

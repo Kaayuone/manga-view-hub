@@ -1,6 +1,6 @@
 import type { AxiosPromise } from 'axios';
 import type { SourceName } from '@project-common/types/source';
-import type { ChapterInfoResponse } from '../types/reponse.types';
+import type { ChapterInfoResponse } from '../types/response.types';
 import request from '../config';
 
 export function getChapterInfo(

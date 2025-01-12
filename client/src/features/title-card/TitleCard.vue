@@ -2,14 +2,14 @@
 import { AspectRatio } from '@/ui/aspect-ratio';
 import { Card, CardHeader, CardTitle } from '@/ui/card';
 
-import type { StoryListItem } from '@project-common/types/source';
+import type { TitleListItem } from '@project-common/types/source';
 
 const props = defineProps<{
-  item: StoryListItem;
+  item: TitleListItem;
 }>();
 
 const emit = defineEmits<{
-  open: [item: StoryListItem];
+  open: [item: TitleListItem];
 }>();
 
 function openTitlePage() {
