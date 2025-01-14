@@ -5,6 +5,7 @@ export const SOURCE_LIST: Source[] = [
     name: 'remanga',
     text: 'Remanga',
     description: 'Русский',
+    // TODO: create path for static images
     iconPath: 'remanga.png',
   },
 ];

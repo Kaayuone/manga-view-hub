@@ -13,7 +13,7 @@ export function getTitleByIdInSource(
   params?: ParamsGetTitle,
 ): AxiosPromise<TitleInfo> {
   return request({
-    url: `/title/${sourceName}/${id}`,
+    url: `/title/info/${sourceName}/${id}`,
     method: 'GET',
     params,
   });

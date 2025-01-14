@@ -37,7 +37,7 @@ export class TitleController {
     private readonly httpService: HttpService,
   ) {}
 
-  @Get(':sourceName/:id')
+  @Get('info/:sourceName/:id')
   async getTitleByIdInSource(
     @Param('sourceName') sourceName: SourceName,
     @Param('id') id: string,
@@ -52,6 +52,7 @@ export class TitleController {
     if (!searchLink) {
       throw new NotFoundException('There is no such source in the app');
     }
+    console.log('id :>>', id);
 
     try {
       const linkGetTitle = `${SOURCES.SEARCH_TITLE_LINK.get(sourceName)}${useUrlInsteadId ? titleUrl : id}`;
@@ -102,7 +103,9 @@ export class TitleController {
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<PaginationResponse<Chapter> | NotFoundException | InternalServerErrorException> {
+    console.log('aboba');
     const searchLink = SOURCES.SEARCH_CHAPTERS_LINK.get(sourceName);
+    console.log('searchLink :>> ', searchLink);
     if (!searchLink) {
       throw new NotFoundException('There is no such source in the app');
     }
