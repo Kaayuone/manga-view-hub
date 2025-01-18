@@ -1,17 +1,9 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  NotFoundException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, InternalServerErrorException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { SearchService } from './search.service';
 
 import { lastValueFrom, map } from 'rxjs';
 
-import type { RemangaResponse } from '@/types/remanga';
 import type { Source, SourceName, TitleListItem } from '@project-common/types/source';
 
 import { SOURCES } from '@/constants';
@@ -33,7 +25,7 @@ export class SearchController {
   async searchInSource(
     @Param('name') name: SourceName,
     @Query('search') search: string,
-  ): Promise<TitleListItem[] | NotFoundException | InternalServerErrorException> {
+  ): Promise<TitleListItem[]> {
     try {
       const sourceResponseData = await lastValueFrom(
         this.httpService
@@ -41,25 +33,7 @@ export class SearchController {
           .pipe(map(response => response.data)),
       );
 
-      // TODO: maybe in search service
-      let responseData: TitleListItem[] = [];
-      switch (name) {
-        case 'remanga':
-          const sourceResponseDataRemanga = sourceResponseData as RemangaResponse;
-          responseData = sourceResponseDataRemanga.content.map(remangaTitle => ({
-            id: remangaTitle.id,
-            urlName: remangaTitle.dir,
-            cover: remangaTitle.cover.high,
-            title: remangaTitle.rus_name,
-            sourceMediaLink: SOURCES.MediaLinks.REMANGA,
-          }));
-          break;
-
-        default:
-          throw new NotFoundException(`The source with name ${name} is not existing!`);
-      }
-
-      return responseData;
+      return this.searchService.mapSourceTitleListResponse(sourceResponseData, name);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);

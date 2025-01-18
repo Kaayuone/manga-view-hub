@@ -15,18 +15,10 @@ import { Chapter } from './entities/chapter.entity';
 import { TitleService } from './title.service';
 
 import { lastValueFrom, map } from 'rxjs';
-import { wrapInPagination } from '@/utils/pagination';
 
-import type {
-  RemangaChapter,
-  RemangaChapterInfoResponse,
-  RemangaChapterSimple,
-  RemangaTitleInfoResponse,
-} from '@/types/remanga';
 import type { ChapterResponse } from '@/types/common';
 import type { PaginationResponse } from '@project-common/types/common';
 import type { SourceName } from '@project-common/types/source';
-import type { ChapterPublisher } from '@project-common/types/title';
 
 import { SOURCES } from '@/constants';
 
@@ -43,7 +35,7 @@ export class TitleController {
     @Param('id') id: string,
     @Query('titleUrl') titleUrl?: string,
     @Query('useUrlInsteadId') useUrlInsteadId?: boolean,
-  ): Promise<Title | BadRequestException | NotFoundException | InternalServerErrorException> {
+  ): Promise<Title> {
     if (useUrlInsteadId && !titleUrl) {
       throw new BadRequestException('Using url instead of title, but there is no title provided');
     }
@@ -52,43 +44,14 @@ export class TitleController {
     if (!searchLink) {
       throw new NotFoundException('There is no such source in the app');
     }
-    console.log('id :>>', id);
 
     try {
       const linkGetTitle = `${SOURCES.SEARCH_TITLE_LINK.get(sourceName)}${useUrlInsteadId ? titleUrl : id}`;
       const sourceResponseData = await lastValueFrom(
         this.httpService.get(linkGetTitle).pipe(map(response => response.data)),
       );
-      let responseData: Title;
-      // TODO: maybe in service
-      switch (sourceName) {
-        case 'remanga':
-          const sourceResponseDataRemanga = sourceResponseData as RemangaTitleInfoResponse;
-          const remangaTitle = sourceResponseDataRemanga.content;
-          responseData = new Title({
-            id: remangaTitle.id,
-            urlName: remangaTitle.dir,
-            cover: remangaTitle.img.high,
-            title: remangaTitle.rus_name,
-            sourceMediaLink: SOURCES.MediaLinks.REMANGA,
-            authors: Object.keys(remangaTitle.creators).flatMap(key =>
-              remangaTitle.creators[key].map(creator => creator.name),
-            ),
-            description: remangaTitle.description.replace(/(<([^>]+)>)/gi, ''), // remove tags from string
-            status: remangaTitle.status.name,
-            tags: [
-              ...remangaTitle.genres.map(genre => genre.name),
-              ...remangaTitle.categories.map(category => category.name),
-            ],
-            translators: remangaTitle.publishers.map(publisher => publisher.name),
-            chapterListId: remangaTitle.branches.at(0).id,
-          });
-          break;
 
-        default:
-          throw new NotFoundException(`The source with name ${sourceName} is not existing!`);
-      }
-      return responseData;
+      return this.titleService.mapTitleInfo(sourceResponseData, sourceName);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -102,18 +65,14 @@ export class TitleController {
     @Query('chapterListId') chapterListId: number,
     @Query('page') page: number,
     @Query('size') size: number,
-  ): Promise<PaginationResponse<Chapter> | NotFoundException | InternalServerErrorException> {
-    console.log('aboba');
+  ): Promise<PaginationResponse<Chapter>> {
     const searchLink = SOURCES.SEARCH_CHAPTERS_LINK.get(sourceName);
-    console.log('searchLink :>> ', searchLink);
     if (!searchLink) {
       throw new NotFoundException('There is no such source in the app');
     }
 
     try {
-      const chaptersList: {
-        content: RemangaChapter[];
-      } = await lastValueFrom(
+      const chaptersList = await lastValueFrom(
         this.httpService
           .get(searchLink, {
             params: {
@@ -125,29 +84,7 @@ export class TitleController {
           .pipe(map(response => response.data)),
       );
 
-      // TODO: maybe in service, when more sources
-      const items = chaptersList.content.map<Chapter>(
-        item =>
-          new Chapter({
-            id: item.id,
-            number: parseFloat(item.chapter),
-            publishDate: item.pub_date,
-            publishers: item.publishers.map<ChapterPublisher>(publisher => ({
-              id: publisher.id,
-              name: publisher.name,
-            })),
-            tome: item.tome,
-            isPaid: item.is_paid ?? false,
-          }),
-      );
-
-      return wrapInPagination(
-        items,
-        page,
-        size,
-        undefined,
-        chaptersList.content.at(-1).index === 1,
-      );
+      return this.titleService.mapSourceChapters(chaptersList, sourceName, page, size);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -160,16 +97,14 @@ export class TitleController {
   async getAllTitleChapters(
     @Param('sourceName') sourceName: SourceName,
     @Param('chapterListId') chapterListId: string,
-  ): Promise<Chapter[] | NotFoundException | InternalServerErrorException> {
+  ): Promise<Chapter[]> {
     const searchLink = SOURCES.SEARCH_CHAPTERS_LINK.get(sourceName);
     if (!searchLink) {
       throw new NotFoundException('There is no such source in the app');
     }
 
     try {
-      const chaptersList: {
-        content: RemangaChapterSimple[];
-      } = await lastValueFrom(
+      const chaptersList = await lastValueFrom(
         this.httpService
           .get(searchLink, {
             params: {
@@ -180,20 +115,8 @@ export class TitleController {
           })
           .pipe(map(response => response.data)),
       );
-      // TODO: maybe in service, when more sources
-      const items = chaptersList.content.map<Chapter>(
-        item =>
-          new Chapter({
-            id: item.id,
-            number: parseFloat(item.chapter),
-            publishDate: '',
-            publishers: [],
-            tome: item.tome,
-            isPaid: item.is_paid ?? false,
-          }),
-      );
 
-      return items;
+      return this.titleService.mapSourceSimpleChapters(chaptersList, sourceName);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
@@ -206,27 +129,18 @@ export class TitleController {
   async getChapterFrames(
     @Param('sourceName') sourceName: SourceName,
     @Param('id') id: string,
-  ): Promise<ChapterResponse | NotFoundException> {
+  ): Promise<ChapterResponse> {
     const searchLink = SOURCES.SEARCH_CHAPTERS_LINK.get(sourceName);
     if (!searchLink) {
       throw new NotFoundException('There is no such source in the app');
     }
 
     try {
-      const chapterInfo: RemangaChapterInfoResponse = await lastValueFrom(
+      const chapterInfo = await lastValueFrom(
         this.httpService.get(`${searchLink}/${id}`).pipe(map(response => response.data)),
       );
-      // TODO: maybe map in service
-      return {
-        tome: chapterInfo.content.tome,
-        chapter: chapterInfo.content.chapter,
-        pages: chapterInfo.content.pages.map(([{ id, link, height, width }]) => ({
-          id,
-          url: link,
-          height,
-          width,
-        })),
-      };
+
+      return this.titleService.mapChapterFrames(chapterInfo, sourceName);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error);
