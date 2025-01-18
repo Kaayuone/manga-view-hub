@@ -1,10 +1,13 @@
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
-import eslintConfigPrettier from 'eslint-config-prettier';
+/* eslint-disable @typescript-eslint/no-require-imports */
+const globals = require('globals');
+const tseslint = require('typescript-eslint');
+const eslintConfigPrettier = require('eslint-config-prettier');
 
 /** @type {import('eslint').Linter.Config[]} */
-export default [
+module.exports = [
   { files: ['**/*.{js,mjs,cjs,ts}'] },
+  ...tseslint.configs.recommended,
+  eslintConfigPrettier,
   {
     languageOptions: {
       globals: {
@@ -12,8 +15,6 @@ export default [
       },
     },
   },
-  ...tseslint.configs.recommended,
-  eslintConfigPrettier,
   {
     rules: {
       '@typescript-eslint/no-unused-vars': 'warn',
