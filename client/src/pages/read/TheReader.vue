@@ -2,8 +2,9 @@
 import { ShadcnButton } from '@/ui/button';
 import { ArrowLeft, Menu, Settings } from 'lucide-vue-next';
 
-import { useUserProgressStore } from '@/stores';
 import { useRouter } from 'vue-router';
+import { useIntersectionObserver } from '@vueuse/core';
+import { useUserProgressStore } from '@/stores';
 
 import { titleApi } from '@/api';
 
@@ -27,6 +28,8 @@ const titleInfo = ref<TitleInfo>();
 const chapterInfo = ref<ChapterInfo>();
 const chapters = ref<TitleChapter[]>([]);
 
+const endOfChapter = ref<HTMLDivElement>();
+
 const showPreviousChapterButton = computed(() => {
   const currentChapterIndex = chapters.value.findIndex(chapter => chapter.id === props.id);
   return (
@@ -45,11 +48,12 @@ const showNextChapterButton = computed(() => {
 });
 
 const router = useRouter();
-const { setProgress } = useUserProgressStore();
+const { userProgress, setProgress } = useUserProgressStore();
 
 onMounted(() => {
   getFrames();
   getTitle().then(() => getAllChapters(titleInfo.value!.chapterListId));
+  useIntersectionObserver(endOfChapter, onIntersectionObserver);
 });
 
 onBeforeUnmount(() => {
@@ -141,7 +145,23 @@ function openNextChapter() {
       url: props.url,
     },
   });
-  setProgress(props.sourceName, props.url, chapters.value.at(currentChapterIndex + 1)!.id);
+}
+
+function onIntersectionObserver([entry]: IntersectionObserverEntry[]) {
+  if (entry.isIntersecting && frames.value.length > 0) {
+    const sourceProgress = userProgress[props.sourceName];
+    const lastChapterId = sourceProgress ? sourceProgress[props.url] : 0;
+    const currentChapterIndex = chapters.value.findIndex(chapter => chapter.id === props.id);
+
+    if (lastChapterId !== 0) {
+      const lastChapterIndex = chapters.value.findIndex(chapter => chapter.id === lastChapterId);
+      if (currentChapterIndex > lastChapterIndex) {
+        setProgress(props.sourceName, props.url, chapters.value.at(currentChapterIndex)!.id);
+      }
+    } else {
+      setProgress(props.sourceName, props.url, chapters.value.at(currentChapterIndex)!.id);
+    }
+  }
 }
 
 function toggleMenu() {
@@ -183,10 +203,10 @@ function toggleMenu() {
       </ShadcnButton>
     </header>
 
-    <div class="mr-auto px-2 py-3">
+    <div class="mr-auto px-2 py-16">
       <ShadcnButton
         :class="{ 'transparent-inactive': !showPreviousChapterButton }"
-        class="mx-auto mb-3 block"
+        class="mx-auto mb-10 block"
         variant="secondary"
         size="xs"
         @click="openPreviousChapter"
@@ -222,7 +242,9 @@ function toggleMenu() {
       <AtomSpinner v-bind="SPINNER.ATOM_SPINNER_FIXED_CONFIG" />
     </div>
 
-    <div class="mr-auto mt-3 px-2 py-3">
+    <div ref="endOfChapter"></div>
+
+    <div class="mr-auto mt-3 px-2 py-16">
       <ShadcnButton
         :class="{ 'transparent-inactive': !showNextChapterButton }"
         class="mx-auto block"
