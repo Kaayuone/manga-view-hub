@@ -1,14 +1,19 @@
-import './assets/main.css'
+import './assets/fonts/lato.css';
+import './assets/main.css';
 
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 
-import App from './App.vue'
-import router from './router'
+import App from './App.vue';
+import router from './router';
 
-const app = createApp(App)
+// @ts-expect-error incorrect declaration export
+import { AtomSpinner } from 'epic-spinners';
 
-app.use(createPinia())
-app.use(router)
+const app = createApp(App);
 
-app.mount('#app')
+app.use(createPinia());
+app.use(router);
+
+app.component('AtomSpinner', AtomSpinner);
+app.mount('#app');
