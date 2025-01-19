@@ -20,6 +20,7 @@ import {
 import { AspectRatio } from '@/ui/aspect-ratio';
 import { Badge } from '@/ui/badge';
 import { Separator } from '@/ui/separator';
+import { Skeleton } from '@/ui/skeleton';
 
 import { useRouter } from 'vue-router';
 import { useIntersectionObserver } from '@vueuse/core';
@@ -39,6 +40,7 @@ const props = defineProps<{
   url: string;
 }>();
 
+const loadingInfo = ref(false);
 const loadingChapters = ref(false);
 const titleInfo = ref<TitleInfo>();
 const chapters = ref<TitleChapter[]>([]);
@@ -57,7 +59,7 @@ const lastChapterRead = computed(() => {
 });
 
 const router = useRouter();
-const { userProgress, setProgress } = useUserProgressStore();
+const { userProgress } = useUserProgressStore();
 const { pagination, paginationInfo, next, setPagination, setPaginationInfo } = usePagination();
 
 onMounted(async () => {
@@ -67,6 +69,7 @@ onMounted(async () => {
 });
 
 async function getTitle() {
+  loadingInfo.value = true;
   try {
     const { data } = await titleApi.getTitleByIdInSource(props.id, props.sourceName, {
       titleUrl: props.url,
@@ -76,6 +79,7 @@ async function getTitle() {
   } catch (error) {
     console.error(error);
   }
+  loadingInfo.value = false;
 }
 
 async function getChapterList() {
@@ -108,13 +112,6 @@ function onIntersectionObserver([entry]: IntersectionObserverEntry[]) {
 }
 
 function read(chapter: TitleChapter) {
-  const chapterToReadIndex = chapters.value.findIndex(_chapter => _chapter.id === chapter.id);
-  const lastChapterReadIndex = chapters.value.findIndex(
-    _chapter => _chapter.id === lastChapterRead.value,
-  );
-  if (chapterToReadIndex < lastChapterReadIndex) {
-    setProgress(props.sourceName, props.url, chapter.id);
-  }
   router.push({
     name: 'read-manga',
     params: {
@@ -163,7 +160,6 @@ async function readLast() {
         titleId: props.id,
       },
     });
-    setProgress(props.sourceName, props.url, firstChapter.id);
   } else {
     const currentChapterIndex = allChapters.findIndex(chapter => chapter.id === lastChapter);
     const nextChapter = allChapters.at(currentChapterIndex + 1);
@@ -186,7 +182,6 @@ async function readLast() {
         titleId: props.id,
       },
     });
-    setProgress(props.sourceName, props.url, nextChapter.id);
   }
 }
 
@@ -238,7 +233,7 @@ function backToList() {
       </div>
     </div>
 
-    <div class="container px-3">
+    <div v-if="!loadingInfo" class="container px-3">
       <div class="my-3 flex items-start">
         <div class="min-w-[100px]">
           <AspectRatio :ratio="2 / 3">
@@ -292,6 +287,39 @@ function backToList() {
       <ShadcnButton class="sticky bottom-3 ml-auto flex" size="sm" @click="readLast">
         <Play :size="16" class="mr-2" /> Читать
       </ShadcnButton>
+    </div>
+
+    <div v-else class="container px-3">
+      <div class="my-3 flex items-start">
+        <div class="min-w-[100px]">
+          <Skeleton class="h-[150px]" />
+        </div>
+
+        <div class="ml-3 flex w-full flex-col">
+          <Skeleton class="mb-2 h-10" />
+          <Skeleton class="mb-2 h-4" />
+          <Skeleton class="mb-2 h-4" />
+          <Skeleton class="h-4" />
+        </div>
+      </div>
+
+      <!-- TODO: Сворачивание описания и тегов -->
+      <div class="mb-3 text-xs">
+        <Skeleton class="h-[150px]" />
+      </div>
+
+      <div class="mb-3 flex flex-wrap gap-1.5">
+        <Skeleton
+          v-for="n in 10"
+          :key="`skeleton-badge-${n}`"
+          :style="`width: ${Math.random() * 100 + 30}px`"
+          class="h-[18px]"
+        />
+      </div>
+
+      <Skeleton class="mb-3 h-12" />
+      <Skeleton class="mb-3 h-12" />
+      <Skeleton class="mb-3 h-12" />
     </div>
   </div>
 </template>

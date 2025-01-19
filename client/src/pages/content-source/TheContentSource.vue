@@ -13,11 +13,13 @@ import { computed, ref, watch } from 'vue';
 import { debouncedRef } from '@vueuse/core';
 
 import type { SourceName, TitleListItem } from '@project-common/types/source';
+import { SPINNER } from '@/constants';
 
 const props = defineProps<{
   name: SourceName;
 }>();
 
+const loading = ref(false);
 const titleList = ref<TitleListItem[]>([]);
 const query = ref('');
 const debounceSearchQuery = debouncedRef(query, 500);
@@ -29,6 +31,7 @@ const router = useRouter();
 watch(debounceSearchQuery, getTitleList);
 
 async function getTitleList() {
+  loading.value = true;
   try {
     const { data } = await searchApi.getTitlesInSourceBySearch(props.name, {
       search: debounceSearchQuery.value,
@@ -38,6 +41,7 @@ async function getTitleList() {
   } catch (error) {
     console.error(error);
   }
+  loading.value = false;
 }
 
 function openTitlePage(item: TitleListItem) {
@@ -67,7 +71,7 @@ function openTitlePage(item: TitleListItem) {
     </div>
 
     <div class="h-full">
-      <div class="flex flex-wrap items-start justify-start">
+      <div v-if="!loading" class="flex flex-wrap items-start justify-start">
         <TitleCard
           v-for="(title, index) in titleList"
           :key="`manga-${index}`"
@@ -75,6 +79,8 @@ function openTitlePage(item: TitleListItem) {
           @open="openTitlePage"
         />
       </div>
+
+      <AtomSpinner v-else v-bind="SPINNER.ATOM_SPINNER_FIXED_CONFIG" />
     </div>
   </div>
 </template>

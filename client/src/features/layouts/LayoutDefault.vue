@@ -20,6 +20,7 @@ const TABS: NavigationTab[] = [
 ];
 
 const contentHeight = ref('100vh');
+const contentHeightFallback = ref('100vh');
 const activeRoute = ref('home');
 
 const navbar = ref<InstanceType<typeof AppNavbar> | null>(null);
@@ -36,12 +37,16 @@ onBeforeMount(() => {
 });
 
 onMounted(() => {
-  contentHeight.value = `calc(100vh - ${navbar.value?.$el.clientHeight}px)`;
+  contentHeightFallback.value = `calc(100vh - ${navbar.value?.$el.clientHeight}px)`;
+  contentHeight.value = `calc(100dvh - ${navbar.value?.$el.clientHeight}px)`;
 });
 </script>
 
 <template>
-  <div :style="`height: ${contentHeight}`" class="overflow-y-auto px-2 md:px-4">
+  <div
+    :style="`height: ${contentHeightFallback}; height: ${contentHeight}`"
+    class="overflow-y-auto px-2 md:px-4"
+  >
     <RouterView />
   </div>
 
