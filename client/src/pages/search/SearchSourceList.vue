@@ -39,11 +39,11 @@ function openSource(name: string) {
 </script>
 
 <template>
-  <h1 class="sticky top-0 z-10 bg-background pb-1 text-xl font-medium">Поиск по источникам</h1>
+  <h1 class="sticky top-0 z-10 bg-background pb-1 text-xl font-medium">Источники</h1>
 
-  <div class="my-2">
+  <!-- <div class="my-2">
     <ShadcnInput v-model="query" placeholder="Поиск" />
-  </div>
+  </div> -->
 
   <AtomSpinner v-if="loading" v-bind="SPINNER.ATOM_SPINNER_FIXED_CONFIG" />
 
