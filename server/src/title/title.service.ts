@@ -122,7 +122,7 @@ export class TitleService {
         response = {
           tome: chapterInfo.content.tome,
           chapter: chapterInfo.content.chapter,
-          pages: chapterInfo.content.pages.map(([{ id, link, height, width }]) => ({
+          pages: chapterInfo.content.pages.flat().map(({ id, link, height, width }) => ({
             id,
             url: link,
             height,
