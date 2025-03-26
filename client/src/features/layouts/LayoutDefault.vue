@@ -3,6 +3,8 @@ import AppNavbar from './components/AppNavbar.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { onBeforeMount, onMounted, ref, watch } from 'vue';
 import type { NavigationTab } from '@/types';
+import ShadcnButton from '@/ui/button/ShadcnButton.vue';
+import { ArrowLeft } from 'lucide-vue-next';
 
 const TABS: NavigationTab[] = [
   {
@@ -16,6 +18,10 @@ const TABS: NavigationTab[] = [
   {
     text: 'Поиск',
     routeName: 'search-list',
+  },
+  {
+    text: 'Профиль',
+    routeName: 'user-profile',
   },
 ];
 
@@ -40,12 +46,22 @@ onMounted(() => {
   contentHeightFallback.value = `calc(100vh - ${navbar.value?.$el.clientHeight}px)`;
   contentHeight.value = `calc(100dvh - ${navbar.value?.$el.clientHeight}px)`;
 });
+
+function goBack() {
+  router.back();
+}
 </script>
 
 <template>
+  <nav class="fixed top-0 z-[1] flex w-full justify-between bg-background p-2">
+    <ShadcnButton variant="ghost" size="icon" @click="goBack">
+      <ArrowLeft />
+    </ShadcnButton>
+  </nav>
+
   <div
     :style="`height: ${contentHeightFallback}; height: ${contentHeight}`"
-    class="overflow-y-auto px-2 md:px-4"
+    class="overflow-y-auto px-2 pt-12 md:px-4"
   >
     <RouterView />
   </div>
