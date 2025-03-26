@@ -10,10 +10,10 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     const hash = await argon2.hash(createUserDto.password);
-    // TODO: return login data (tokens)
     return this.prisma.user.create({
       data: {
         ...createUserDto,
+        name: createUserDto.username,
         password: hash,
       },
     });
