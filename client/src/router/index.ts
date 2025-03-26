@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import type { RouteLocation } from 'vue-router';
+import { navigationGuard } from './guard';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,6 +31,11 @@ const router = createRouter({
           component: () => import('@/pages/content-source'),
           props: true,
         },
+        {
+          path: '/profile',
+          name: 'user-profile',
+          component: () => import('@/pages/profile'),
+        },
       ],
     },
     {
@@ -53,7 +59,19 @@ const router = createRouter({
         url: route.params.url,
       }),
     },
+    {
+      path: '/login',
+      name: 'auth-login',
+      component: async () => (await import('@/pages/auth')).LoginPage,
+    },
+    {
+      path: '/register',
+      name: 'auth-registration',
+      component: async () => (await import('@/pages/auth')).RegistrationPage,
+    },
   ],
 });
+
+router.beforeEach(navigationGuard);
 
 export default router;
