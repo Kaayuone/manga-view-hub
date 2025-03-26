@@ -1,22 +1,30 @@
 import * as argon2 from 'argon2';
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '@/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { TokenPayload, TokensResponse } from './types';
 import { COMMON } from '@/constants';
+import { RegisterUserDto } from './dto/register-user.dto';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
+    private prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
 
   async validateUser(username: string, password: string) {
     try {
       const user = await this.usersService.findOne(undefined, username);
-      if (user && argon2.verify(user.password, password)) {
+      if (user && (await argon2.verify(user.password, password))) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, ...result } = user;
         return result;
@@ -37,6 +45,19 @@ export class AuthService {
       accessToken: this.jwtService.sign(payload),
       refreshToken,
     };
+  }
+
+  async register(registerUserDto: RegisterUserDto) {
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        username: registerUserDto.username,
+      },
+    });
+    if (existingUser) {
+      throw new ConflictException('Пользователь с таким логином уже существует');
+    }
+    const user = await this.usersService.create(registerUserDto);
+    return this.login(user);
   }
 
   async refreshToken(refreshToken: string): Promise<TokensResponse> {
