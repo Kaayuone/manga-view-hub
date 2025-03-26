@@ -18,3 +18,8 @@ export type PaginationRequest = Pick<Pagination, 'page' | 'size'>;
 export type ParamsChapterList = PaginationRequest & {
   chapterListId: number;
 };
+
+export type UserCredentials = {
+  username: string;
+  password: string;
+};
