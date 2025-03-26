@@ -5,3 +5,8 @@ export interface ChapterInfoResponse {
   chapter: string;
   pages: ChapterFrame[];
 }
+
+export type TokenResponse = {
+  accessToken: string;
+  refreshToken: string;
+};
