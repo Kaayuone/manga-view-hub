@@ -50,16 +50,18 @@ function openTitlePage(item: TitleListItem) {
     params: { id: item.id, sourceName: props.name, url: item.urlName },
   });
 }
+
+function back() {
+  router.back();
+}
 </script>
 
 <template>
   <div :class="{ 'h-full': hasItems }">
     <div class="sticky top-0 z-10 flex gap-x-2 bg-background">
-      <RouterLink :to="{ name: 'search-list' }">
-        <ShadcnButton size="icon" variant="ghost">
-          <ArrowLeft />
-        </ShadcnButton>
-      </RouterLink>
+      <ShadcnButton variant="ghost" size="icon" @click="back">
+        <ArrowLeft />
+      </ShadcnButton>
 
       <h1 class="text-xl font-medium">
         {{ props.name }}

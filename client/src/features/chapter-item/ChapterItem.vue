@@ -36,10 +36,10 @@ function openChapter() {
       </div>
     </div>
 
-    <div>
+    <!-- <div>
       <ShadcnButton variant="ghost" size="icon-small">
         <ArrowDownToLine :size="16" />
       </ShadcnButton>
-    </div>
+    </div> -->
   </div>
 </template>
