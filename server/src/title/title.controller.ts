@@ -7,6 +7,12 @@ import {
   NotFoundException,
   InternalServerErrorException,
   Res,
+  Body,
+  Post,
+  UseGuards,
+  Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Response } from 'express';
@@ -21,6 +27,7 @@ import type { PaginationResponse } from '@project-common/types/common';
 import type { SourceName } from '@project-common/types/source';
 
 import { SOURCES } from '@/constants';
+import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
 @Controller('title')
 export class TitleController {
@@ -170,5 +177,54 @@ export class TitleController {
       console.error(error);
       throw new InternalServerErrorException(error);
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('library/:userId')
+  async getTitlesForLibrary(@Param('userId') userId: number) {
+    if (!userId && typeof userId === 'number') throw new BadRequestException('No user provided');
+    const titles = await this.titleService.getUserLibrary(userId);
+    return titles.map(title => ({ ...title, sourceMediaLink: SOURCES.MediaLinks.REMANGA }));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('library/:userId/ids')
+  async getTitlesIdsForLibrary(@Param('userId') userId: number) {
+    if (!userId && typeof userId === 'number') throw new BadRequestException('No user provided');
+    const titles = await this.titleService.getUserLibrary(userId);
+    return titles.map(({ id, idInSource, sourceName }) => ({ id, idInSource, sourceName }));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('add-to-library')
+  addTitleToLibrary(
+    @Body('idInSource') idInSource: number,
+    @Body('sourceName') sourceName: SourceName,
+    @Body('urlInSource') urlInSource: string,
+    @Body('cover') cover: string,
+    @Body('title') title: string,
+    @Body('userId') userId: number,
+  ) {
+    if (!idInSource || !sourceName || !urlInSource || !userId || !cover || !title) {
+      throw new BadRequestException('Invalid data');
+    }
+    return this.titleService.addTitleToUsersLibrary(
+      idInSource,
+      sourceName,
+      urlInSource,
+      userId,
+      title,
+      cover,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('remove-from-library/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeTitleToLibrary(@Param('id') id: number) {
+    if (!id) {
+      throw new BadRequestException('Invalid data');
+    }
+    this.titleService.removeTitleFromUsersLibrary(id);
   }
 }
