@@ -18,6 +18,8 @@ export enum MediaLinks {
   REMANGA = 'https://remanga.org',
 }
 
+export const SOURCE_MEDIA_LINK = new Map<SourceName, MediaLinks>([['remanga', MediaLinks.REMANGA]]);
+
 export const SEARCH_TITLE_LINK = new Map<SourceName, string>([
   ['remanga', 'https://api.remanga.org/api/titles/'],
 ]);

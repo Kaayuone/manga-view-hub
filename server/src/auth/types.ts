@@ -5,5 +5,5 @@ export type TokensResponse = {
 
 export type TokenPayload = {
   username: string;
-  sub: number; // user id
+  id: number;
 };

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
 import { Title } from './entities/title.entity';
 import { Chapter } from './entities/chapter.entity';
 
@@ -18,6 +19,8 @@ import { SOURCES } from '@/constants';
 
 @Injectable()
 export class TitleService {
+  constructor(private prisma: PrismaService) {}
+
   mapTitleInfo(sourceResponseData: unknown, sourceName: SourceName) {
     let responseData: Title;
     switch (sourceName) {
@@ -136,5 +139,45 @@ export class TitleService {
     }
 
     return response;
+  }
+
+  getUserLibrary(userId: number) {
+    return this.prisma.libraryTitle.findMany({
+      where: {
+        userId,
+      },
+    });
+  }
+
+  addTitleToUsersLibrary(
+    idInSource: number,
+    sourceName: SourceName,
+    urlInSource: string,
+    userId: number,
+    title: string,
+    cover: string,
+  ) {
+    // TODO: check existing in database
+    return this.prisma.libraryTitle
+      .create({
+        data: {
+          idInSource,
+          sourceName,
+          urlInSource,
+          userId,
+          title,
+          cover,
+        },
+      })
+      .then(item => item.id);
+  }
+
+  async removeTitleFromUsersLibrary(id: number) {
+    // TODO: check existing in database
+    return await this.prisma.libraryTitle.delete({
+      where: {
+        id,
+      },
+    });
   }
 }

@@ -25,7 +25,7 @@ import { Skeleton } from '@/ui/skeleton';
 import { useRouter } from 'vue-router';
 import { useIntersectionObserver } from '@vueuse/core';
 import { usePagination } from '@/lib/pagination';
-import { useUserProgressStore } from '@/stores';
+import { useUserStore, useUserProgressStore, useLibraryStore } from '@/stores';
 
 import { titleApi } from '@/api';
 
@@ -42,6 +42,7 @@ const props = defineProps<{
 
 const loadingInfo = ref(false);
 const loadingChapters = ref(false);
+const itemLibraryId = ref<number>();
 const titleInfo = ref<TitleInfo>();
 const chapters = ref<TitleChapter[]>([]);
 
@@ -60,9 +61,12 @@ const lastChapterRead = computed(() => {
 
 const router = useRouter();
 const { userProgress } = useUserProgressStore();
+const userStore = useUserStore();
+const { checkIsItemInLibrary, getLibraryItems } = useLibraryStore();
 const { pagination, paginationInfo, next, setPagination, setPaginationInfo } = usePagination();
 
 onMounted(async () => {
+  itemLibraryId.value = checkIsItemInLibrary(props.sourceName, props.id);
   await getTitle();
   getChapterList();
   useIntersectionObserver(endOfChapters, onIntersectionObserver);
@@ -102,6 +106,28 @@ async function getChapterList() {
     console.error(error);
   }
   loadingChapters.value = false;
+}
+
+async function toggleAddToLibrary() {
+  try {
+    if (itemLibraryId.value) {
+      await titleApi.removeFromLibrary(itemLibraryId.value);
+      itemLibraryId.value = undefined;
+    } else {
+      const { data } = await titleApi.addToLibrary({
+        idInSource: props.id,
+        sourceName: props.sourceName,
+        urlInSource: props.url,
+        userId: userStore.userId,
+        cover: titleInfo.value!.cover,
+        title: titleInfo.value!.title,
+      });
+      itemLibraryId.value = data;
+    }
+    getLibraryItems(userStore.userId);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function onIntersectionObserver([entry]: IntersectionObserverEntry[]) {
@@ -185,24 +211,24 @@ async function readLast() {
   }
 }
 
-function backToList() {
-  router.push({ name: 'content-source', params: { name: props.sourceName } });
+function back() {
+  router.back();
 }
 </script>
 
 <template>
   <div class="pb-3">
     <div class="sticky top-0 z-[1] flex justify-between bg-background py-2">
-      <ShadcnButton variant="ghost" size="icon" @click="backToList">
+      <ShadcnButton variant="ghost" size="icon" @click="back">
         <ArrowLeft />
       </ShadcnButton>
 
       <div class="flex gap-x-2">
-        <ShadcnButton variant="ghost" size="icon">
-          <Heart />
+        <ShadcnButton variant="ghost" size="icon" @click="toggleAddToLibrary">
+          <Heart :fill="itemLibraryId ? '#fff' : undefined" />
         </ShadcnButton>
 
-        <DropdownMenu>
+        <!-- <DropdownMenu>
           <DropdownMenuTrigger>
             <ShadcnButton variant="ghost" size="icon">
               <ArrowDownToLine />
@@ -216,9 +242,9 @@ function backToList() {
             <DropdownMenuItem>Следующие 25 глав</DropdownMenuItem>
             <DropdownMenuItem>Непрочитанные главы</DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> -->
 
-        <DropdownMenu>
+        <!-- <DropdownMenu>
           <DropdownMenuTrigger>
             <ShadcnButton variant="ghost" size="icon">
               <EllipsisVertical />
@@ -229,7 +255,7 @@ function backToList() {
             <DropdownMenuItem>Обновить</DropdownMenuItem>
             <DropdownMenuItem>Поделиться</DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> -->
       </div>
     </div>
 

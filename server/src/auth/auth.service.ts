@@ -36,7 +36,7 @@ export class AuthService {
   }
 
   async login(user: User): Promise<TokensResponse> {
-    const payload: TokenPayload = { username: user.username, sub: user.id };
+    const payload: TokenPayload = { username: user.username, id: user.id };
     const refreshToken = this.jwtService.sign(payload, {
       expiresIn: `${COMMON.REFRESH_TOKEN_EXPIRATION_DAYS}d`,
     });
@@ -63,7 +63,7 @@ export class AuthService {
   async refreshToken(refreshToken: string): Promise<TokensResponse> {
     try {
       const payload: TokenPayload = this.jwtService.verify(refreshToken);
-      const user = await this.usersService.findOne(payload.sub, undefined, true);
+      const user = await this.usersService.findOne(payload.id, undefined, true);
       if (!user) {
         throw new UnauthorizedException();
       }
@@ -75,7 +75,7 @@ export class AuthService {
         throw new UnauthorizedException();
       }
 
-      const newPayload: TokenPayload = { username: user.username, sub: user.id };
+      const newPayload: TokenPayload = { username: user.username, id: user.id };
       const newRefreshToken = this.jwtService.sign(newPayload, {
         expiresIn: `${COMMON.REFRESH_TOKEN_EXPIRATION_DAYS}d`,
       });
