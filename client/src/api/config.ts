@@ -1,6 +1,7 @@
 import { useTokenStore } from '@/stores';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { authApi } from '.';
+import router from '@/router';
 
 const request = axios.create({
   baseURL: '/api',
@@ -12,9 +13,9 @@ let failedRequestsQueue: Array<{
   reject: (error: unknown) => void;
 }> = [];
 
-const tokenStore = useTokenStore();
-
 request.interceptors.request.use(config => {
+  const tokenStore = useTokenStore();
+
   if (tokenStore.hasAccessToken) {
     config.headers.Authorization = `Bearer ${tokenStore.accessToken}`;
   }
@@ -26,7 +27,11 @@ request.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      router.currentRoute.value.name !== 'auth-login' &&
+      !originalRequest._retry
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedRequestsQueue.push({ resolve, reject });
@@ -42,6 +47,7 @@ request.interceptors.response.use(
 
       originalRequest._retry = true;
       isRefreshing = true;
+      const tokenStore = useTokenStore();
 
       try {
         const { data: tokens } = await authApi.refresh(tokenStore.refreshToken);
@@ -56,6 +62,16 @@ request.interceptors.response.use(
       } catch (refreshError: unknown) {
         failedRequestsQueue.forEach(({ reject }) => reject(refreshError));
         failedRequestsQueue = [];
+
+        if (
+          refreshError instanceof AxiosError &&
+          (refreshError.response?.data.name === 'JsonWebTokenError' ||
+            refreshError.response?.data.name === 'TokenExpiredError')
+        ) {
+          console.log('error');
+          tokenStore.setTokens({ accessToken: '', refreshToken: '' });
+          router.push({ name: 'auth-login' });
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

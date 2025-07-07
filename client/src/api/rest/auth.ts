@@ -24,6 +24,6 @@ export function refresh(refreshToken: string): AxiosPromise<TokenResponse> {
   return request({
     url: `/auth/refresh`,
     method: 'POST',
-    data: refreshToken,
+    data: { refreshToken },
   });
 }
