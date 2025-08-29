@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import TitleCard from '@/features/title-card';
+import UnauthorizedMessage from '@/components/UnauthorizedMessage.vue';
+
 import { titleApi } from '@/api';
-import { useUserStore } from '@/stores';
+import { useTokenStore, useUserStore } from '@/stores';
+
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+
 import type { TitleListItem } from '@project-common/types/source';
 import type { LibraryItem } from './types';
 
@@ -12,11 +16,14 @@ const userStore = useUserStore();
 const titleItems = ref<LibraryItem[]>([]);
 
 const router = useRouter();
+const tokenStore = useTokenStore();
 
-onMounted(getLibrary);
+onMounted(() => {
+  if (!userStore.userId) return;
+  getLibrary();
+});
 
 async function getLibrary() {
-  if (!userStore.userId) return;
   try {
     const { data } = await titleApi.getUserLibrary(userStore.userId);
     titleItems.value = data.map(item => ({
@@ -45,19 +52,21 @@ function openTitlePage(item: TitleListItem) {
 </script>
 
 <template>
-  <div class="h-full">
-    <!-- Шапка: Заголовок, поиск, фильтр/сортировка, меню действий: обновление библиотека, категории, открыть случайное произведение -->
-    <h1 class="sticky top-0 z-10 bg-background text-xl font-medium">Библиотека</h1>
+  <!-- Шапка: Заголовок, поиск, фильтр/сортировка, меню действий: обновление библиотека, категории, открыть случайное произведение -->
+  <h1 class="sticky top-0 z-10 bg-background text-xl font-medium">Библиотека</h1>
 
-    <div class="h-full">
-      <div class="flex flex-wrap items-start justify-start">
-        <TitleCard
-          v-for="item in titleItems"
-          :key="`${item.urlName}-${item.id}`"
-          :item="item"
-          @open="openTitlePage"
-        />
-      </div>
-    </div>
+  <div v-if="!tokenStore.hasToken" class="relative top-[50%] flex translate-y-[-50%] items-center">
+    <UnauthorizedMessage
+      message="Чтобы просматривать библиотеку и добавлять в неё мангу, войдите"
+    />
+  </div>
+
+  <div v-else class="flex flex-wrap items-start justify-start">
+    <TitleCard
+      v-for="item in titleItems"
+      :key="`${item.urlName}-${item.id}`"
+      :item="item"
+      @open="openTitlePage"
+    />
   </div>
 </template>
