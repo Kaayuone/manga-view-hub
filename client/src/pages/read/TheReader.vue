@@ -225,16 +225,23 @@ function toggleMenu() {
     </div>
 
     <div v-if="!framesLoading" @click="toggleMenu">
-      <template v-for="frame in frames">
+      <template v-for="frame in frames" :key="frame.id">
         <img
           v-if="frame.url"
-          :key="frame.id"
           :src="frame.url"
           :width="frame.width"
           :height="frame.height"
           loading="lazy"
           alt=""
         />
+        <div
+          v-else
+          class="flex items-center justify-center"
+          :style="{ width: `${frame.width}px`, height: `${frame.height}px` }"
+        >
+          <!-- TODO: maybe skeleton instead of spinner -->
+          <AtomSpinner :size="100" />
+        </div>
       </template>
     </div>
 
