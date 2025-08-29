@@ -47,12 +47,11 @@ function openSource(name: string) {
 
   <AtomSpinner v-if="loading" v-bind="SPINNER.ATOM_SPINNER_FIXED_CONFIG" />
 
-  <div v-else class="py-2">
+  <div v-else class="flex flex-col gap-2 py-2">
     <SearchSourceItem
       v-for="source in sources"
       :key="source.name"
       :item="source"
-      class="mb-2"
       @open="openSource"
     />
   </div>

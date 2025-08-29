@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { Globe, Search } from 'lucide-vue-next';
+import { Globe } from 'lucide-vue-next';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/avatar';
-import { ShadcnButton } from '@/ui/button';
 
 import type { Source } from '@project-common/types/source';
-
 
 const props = defineProps<{
   item?: Source;
@@ -20,9 +18,17 @@ function open() {
 </script>
 
 <template>
-  <div v-if="props.item" class="flex items-center gap-2">
-    <Avatar >
-      <AvatarImage :src="`src/assets/images/${props.item.iconPath}`" class="bg-white" alt="Иконка источника" />
+  <div
+    v-if="props.item"
+    class="flex cursor-pointer items-center gap-2 rounded-lg p-1 transition-all active:bg-primary-foreground"
+    @click="open"
+  >
+    <Avatar>
+      <AvatarImage
+        :src="`src/assets/images/${props.item.iconPath}`"
+        class="bg-white"
+        alt="Иконка источника"
+      />
       <AvatarFallback><Globe /></AvatarFallback>
     </Avatar>
 
@@ -30,9 +36,5 @@ function open() {
       <h2 class="text-base">{{ props.item.text }}</h2>
       <p class="text-2xs">{{ props.item.description }}</p>
     </div>
-
-    <ShadcnButton size="icon" variant="ghost" @click="open">
-      <Search />
-    </ShadcnButton>
   </div>
 </template>
