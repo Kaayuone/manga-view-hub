@@ -22,14 +22,14 @@ import { Badge } from '@/ui/badge';
 import { Separator } from '@/ui/separator';
 import { Skeleton } from '@/ui/skeleton';
 
+import { titleApi } from '@/api';
+import { useUserStore, useUserProgressStore, useLibraryStore } from '@/stores';
+
 import { useRouter } from 'vue-router';
 import { useIntersectionObserver } from '@vueuse/core';
 import { usePagination } from '@/lib/pagination';
-import { useUserStore, useUserProgressStore, useLibraryStore } from '@/stores';
-
-import { titleApi } from '@/api';
-
 import { computed, onMounted, ref } from 'vue';
+
 import type { SourceName } from '@project-common/types/source';
 import type { TitleChapter, TitleInfo } from '@project-common/types/title';
 import { CONTENT_SOURCE, SPINNER } from '@/constants';
@@ -224,7 +224,12 @@ function back() {
       </ShadcnButton>
 
       <div class="flex gap-x-2">
-        <ShadcnButton variant="ghost" size="icon" @click="toggleAddToLibrary">
+        <ShadcnButton
+          v-if="userStore.hasUserId"
+          variant="ghost"
+          size="icon"
+          @click="toggleAddToLibrary"
+        >
           <Heart :fill="itemLibraryId ? '#fff' : undefined" />
         </ShadcnButton>
 
